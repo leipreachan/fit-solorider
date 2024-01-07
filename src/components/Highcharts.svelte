@@ -6,6 +6,7 @@
 	export let metricsData = [];
 
 	let chart = null;
+	let seriesNames = new Set();
 
 	onMount(() => {
 		const options = {
@@ -29,12 +30,17 @@
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if (chart && metricsData.length > 0) {
-			const series = metricsData.map(
+			const newSeries = metricsData.map(
 				(fit) =>
 					({ name: fit.name, data: fit.data.map((x) => [Date.parse(x.timestamp), x.power || null]) }));
 
-			series.forEach((s) => chart.addSeries({ name: s.name, data: s.data }, false));
+
+			newSeries.filter((s) => !seriesNames.has(s.name)).forEach((s) => {
+				chart.addSeries({ name: s.name, data: s.data }, false);
+				seriesNames.add(s.name);
+			});
 			chart.redraw();
+
 		}
 	});
 
