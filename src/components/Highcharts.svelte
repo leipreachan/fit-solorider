@@ -127,7 +127,7 @@
 		current[metricName] = [...($moreData[metricName] || []), {
 			[sourceName]: sourceName,
 			[avgName]: avg,
-			[maxName]: max,
+			[maxName]: max
 		}];
 		moreData.set(current);
 	};
