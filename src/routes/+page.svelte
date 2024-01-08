@@ -19,7 +19,7 @@
 			const fitParser = new FitParser({
 				force: true,
 				speedUnit: 'km/h',
-				lengthUnit: 'km',
+				lengthUnit: 'm',
 			});
 
 			fitParser.parse(arrayBuffer, (error, data) => {
@@ -27,7 +27,9 @@
 					console.error('Error parsing FIT file:', error);
 					return;
 				}
-				metricsData[index++] = { name: file.name, data: data.records };
+				// console.log(data);
+				const rideName = (data?.devices[0]?.manufacturer || "") + " " + (data?.devices[0]?.product_name || file.name);
+				metricsData[index++] = { name: rideName, data: data.records };
 			});
 		}
 	};

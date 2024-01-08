@@ -7,9 +7,14 @@
 
 
 	export let metricsData = [];
+	let originalSeries = [];
+	const newSeries = new Map();
+	let metricNames = new Set();
+
 	let powerData = writable([]);
 	let cadenceData = writable([]);
 	let hrData = writable([]);
+	let value = '0';
 	const blueStyle = 'blueTable';
 
 	const options = {
@@ -33,14 +38,13 @@
 	let charts = new Map();
 	let seriesNames = new Set();
 
-	const priority = new Map([['power', 'watts'], ['cadence', 'rpm'], ['heart_rate', 'bpm']]);
+	const priority = new Map([['power', 'watts'], ['cadence', 'rpm'], ['heart_rate', 'bpm'], ['altitude', 'm']]);
 	const exclude = new Set(['timestamp', 'position_lat', 'position_long', 'elapsed_time', 'timer_time']);
 
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
 			options.yAxis.title.text = priority.get(metricName);
-			console.log(metricName);
 			charts.set(metricName, Highcharts.chart(`chartContainer_${metricName}`, options));
 		}
 		return charts.get(metricName);
@@ -78,7 +82,7 @@
 		return Math.round(data.reduce((acc, curr) => acc + curr, 0) / data.length);
 	};
 
-	const displayPower = (name, data) => {
+	const addPowerData = (name, data) => {
 		powerData.set(
 			[...$powerData, {
 				'Source': name,
@@ -89,7 +93,7 @@
 		);
 	};
 
-	const displayCadence = (name, data) => {
+	const addCadenceData = (name, data) => {
 		cadenceData.set(
 			[...$cadenceData, {
 				'Source': name,
@@ -99,7 +103,7 @@
 		);
 	};
 
-	const displayHr = (name, data) => {
+	const addHrData = (name, data) => {
 		hrData.set(
 			[...$hrData, {
 				'Source': name,
@@ -109,47 +113,82 @@
 		);
 	};
 
+	const drawChart = async (field, value) => {
+		value.forEach((s) => {
+			initChart(field).addSeries({ name: s.name, data: s.data }, false);
+			const rawData = s.data.map((x) => x[1]);
+			switch (field) {
+				case 'power':
+					addPowerData(s.name, rawData);
+					break;
+				case 'cadence':
+					addCadenceData(s.name, rawData);
+					break;
+				case 'heart_rate':
+					addHrData(s.name, rawData);
+					break;
+			}
+			seriesNames.add(s.name);
+		});
+		initChart(field).redraw();
+	};
+
+	const getMetricNames = async (data) => {
+		metricNames = new Set(
+			data.flatMap((fit) => fit.data.flatMap((x) => Object.keys(x)))
+		);
+
+		console.log(metricNames);
+	};
+
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if (metricsData.length > 0) {
 
-			const newSeries = new Map();
 			const fields = [...priority.keys()];
 			for (let i = 0; i < fields.length; i++) {
-				const series = metricsData.filter((m) => !seriesNames.has(m.name)).map(
+				const values = metricsData.filter((m) => !seriesNames.has(m.name)).map(
 					(fit) =>
 						({ name: fit.name, data: fit.data.map((x) => [Date.parse(x.timestamp), x[fields[i]] || null]) }));
-				newSeries.set(fields[i], series);
+				newSeries.set(fields[i], values);
 			}
 
 			for (const [field, value] of newSeries) {
-				value.forEach((s) => {
-					initChart(field).addSeries({ name: s.name, data: s.data }, false);
-					const rawData = s.data.map((x) => x[1]);
-					switch (field) {
-						case 'power':
-							displayPower(s.name, rawData);
-							break;
-						case 'cadence':
-							displayCadence(s.name, rawData);
-							break;
-						case 'heart_rate':
-							displayHr(s.name, rawData);
-							break;
-					}
-					seriesNames.add(s.name);
-				});
-				initChart(field).redraw();
+				drawChart(field, value);
 			}
+
+			getMetricNames(metricsData);
 		}
 	});
+
+	function handleOnRangeChange(event) {
+		const ms = event.target.value * 1000;
+		const pwr = initChart('power');
+		if (originalSeries.length === 0) {
+			originalSeries = [...pwr.options.series[1].data];
+		}
+		let data = [...originalSeries];
+		data = data.map((x) => [x[0] + ms, x[1]]);
+		pwr.series[1].setData(data);
+		pwr.redraw(true);
+	}
 
 </script>
 
 <style>
     .chart_wrapper {
-				margin-bottom: 3em;
-		}
+        margin-bottom: 3em;
+    }
+
+    .range {
+        font-family: Helvetica, serif;
+        text-align: center;
+    }
+
+    .range [type=range] {
+        width: 600px;
+    }
+
 </style>
 
 <div id="container_wrapper">
@@ -157,6 +196,13 @@
 		<div id="chartContainer_power"></div>
 		{#if $powerData.length > 0}
 			<Table tableData={$powerData} style={blueStyle} />
+		{/if}
+		{#if $powerData.length > 1}
+			<div class="range">
+				Shift second chart by:<br>
+				<input type="range" min="-150" max="150" bind:value on:change={handleOnRangeChange}><br>{value}
+				seconds
+			</div>
 		{/if}
 	</div>
 	<div class="chart_wrapper">
@@ -170,5 +216,8 @@
 		{#if $hrData.length > 0}
 			<Table tableData={$hrData} style={blueStyle} />
 		{/if}
+	</div>
+	<div class="chart_wrapper">
+		<div id="chartContainer_altitude"></div>
 	</div>
 </div>

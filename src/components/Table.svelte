@@ -44,6 +44,7 @@
         background-color: #EEEEEE;
         border-collapse: collapse;
         text-align: center;
+				margin-bottom: 3em;
     }
     table.blueTable td, table.blueTable th {
         border: 1px solid #AAAAAA;
