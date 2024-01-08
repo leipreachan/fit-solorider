@@ -9,7 +9,7 @@
 
 	export let metricsData = [];
 	const newSeries = new Map();
-	let originalSeries = [];
+	const originalSeries = new Map();
 	let metricNames = new Set();
 
 	let powerData = writable([]);
@@ -160,7 +160,7 @@
 			data.flatMap((fit) => fit.data.flatMap((x) => Object.keys(x)))
 		);
 
-		console.log(metricNames);
+		// console.log(metricNames);
 	};
 
 	afterUpdate(() => {
@@ -185,14 +185,17 @@
 
 	function handleOnRangeChange(event) {
 		const ms = event.target.value * 1000;
-		const pwr = initChart('power');
-		if (originalSeries.length === 0) {
-			originalSeries = [...pwr.options.series[1].data];
+		for (let k of priority.keys()) {
+			console.log(k);
+			const chrt = initChart(k);
+			if (originalSeries.get(k) === undefined) {
+				originalSeries.set(k, [...chrt.options.series[1].data]);
+			}
+			let data = [...originalSeries.get(k)];
+			data = data.map((x) => [x[0] + ms, x[1]]);
+			chrt.series[1].setData(data);
+			chrt.redraw(true);
 		}
-		let data = [...originalSeries];
-		data = data.map((x) => [x[0] + ms, x[1]]);
-		pwr.series[1].setData(data);
-		pwr.redraw(true);
 	}
 
 </script>
@@ -208,7 +211,7 @@
     }
 
     .range [type=range] {
-        width: 600px;
+        width: 800px;
     }
 
 </style>
@@ -222,7 +225,7 @@
 		{#if $powerData.length > 1}
 			<div class="range">
 				Shift second chart by:<br>
-				<input type="range" min="-150" max="150" bind:value on:change={handleOnRangeChange}><br>{value}
+				<input type="range" min="-120" max="120" bind:value on:change={handleOnRangeChange}><br>{value}
 				seconds
 			</div>
 		{/if}
