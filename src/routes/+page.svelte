@@ -4,11 +4,6 @@
 	import FitParser from 'fit-file-parser';
 	import Highcharts from '../components/Highcharts.svelte';
 	import { browser } from '$app/environment';
-	import dotenv from 'dotenv';
-
-	dotenv.config();
-
-	let { ENVIRONMENT } = process.env;
 
 	let files = [];
 	let metricsData = [];
@@ -78,10 +73,8 @@
 
 <MetaTags {...metaTags} />
 
-{#if ENVIRONMENT === "PROD"}
-	{#if browser}
-		<script async src="https://ooo.me2.ru/script.js" data-website-id="ca266852-c15c-482f-a34b-38cefe004d68"></script>
-	{/if}
+{#if browser}
+	<script async src="https://ooo.me2.ru/script.js" data-website-id="ca266852-c15c-482f-a34b-38cefe004d68"></script>
 {/if}
 
 <main>
