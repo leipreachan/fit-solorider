@@ -42,6 +42,10 @@
 </style>
 
 <main>
+	{#if metricsData.length === 0}
+		Compare FIT files data - power, cadence, HR. The app doesn't store anything and works in your browser, no strings attached.
+		<br>
+	{/if}
 	<input type="file" id="fileInput" multiple on:change={handleFileUpload} accept=".fit" />
 	{#if metricsData.length > 0}
 		<button on:click={clear}>Clear dataset</button>
