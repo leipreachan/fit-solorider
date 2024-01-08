@@ -5,15 +5,15 @@
 	import { writable } from 'svelte/store';
 	import Table from './Table.svelte';
 
+	const sourceName = 'Source';
 
 	export let metricsData = [];
-	let originalSeries = [];
 	const newSeries = new Map();
+	let originalSeries = [];
 	let metricNames = new Set();
 
 	let powerData = writable([]);
-	let cadenceData = writable([]);
-	let hrData = writable([]);
+	let moreData = writable({});
 	let value = '0';
 	const blueStyle = 'blueTable';
 
@@ -38,7 +38,7 @@
 	let charts = new Map();
 	let seriesNames = new Set();
 
-	const priority = new Map([['power', 'watts'], ['cadence', 'rpm'], ['heart_rate', 'bpm'], ['altitude', 'm']]);
+	const priority = new Map([['power', 'watts'], ['cadence', 'rpm'], ['heart_rate', 'bpm'], ['altitude', 'meters']]);
 	const exclude = new Set(['timestamp', 'position_lat', 'position_long', 'elapsed_time', 'timer_time']);
 
 	const initChart = (metricName) => {
@@ -82,35 +82,54 @@
 		return Math.round(data.reduce((acc, curr) => acc + curr, 0) / data.length);
 	};
 
+	const percDiff = (a, b) => {
+		return ' Δ' + Math.round((b - a) * 100 / a) + '%';
+	};
+
 	const addPowerData = (name, data) => {
+		let avg = calculateAverage(data);
+		let norm = calculateNormalizedPower(data);
+		let max = Math.max(...data);
+		const avgName = 'Average Power';
+		const normName = 'Normalised Power';
+		const maxName = 'Max Power';
+
+		if ($powerData.length > 0) {
+			avg = avg + percDiff($powerData[0][avgName], avg);
+			norm = norm + percDiff($powerData[0][normName], norm);
+			max = max + percDiff($powerData[0][maxName], max);
+		}
+
 		powerData.set(
 			[...$powerData, {
-				'Source': name,
-				'Average Power': calculateAverage(data),
-				'Normalised Power': calculateNormalizedPower(data),
-				'Max Power': Math.max(...data)
+				[sourceName]: name,
+				[avgName]: avg,
+				[normName]: norm,
+				[maxName]: max
 			}]
 		);
 	};
 
-	const addCadenceData = (name, data) => {
-		cadenceData.set(
-			[...$cadenceData, {
-				'Source': name,
-				'Average Cadence': calculateAverage(data),
-				'Max Cadence': Math.max(...data)
-			}]
-		);
-	};
+	const addAvgMaxData = (sourceName, metricName, data) => {
+		let avg = calculateAverage(data);
+		let max = Math.round(Math.max(...data));
+		const avgName = `Average ${metricName}`;
+		const maxName = `Max ${metricName}`;
+		if (metricName in $moreData && $moreData[metricName].length > 0) {
+			avg = avg + percDiff($moreData[metricName][0][avgName], avg);
+			max = max + percDiff($moreData[metricName][0][maxName], max);
+		}
 
-	const addHrData = (name, data) => {
-		hrData.set(
-			[...$hrData, {
-				'Source': name,
-				'Average HR': calculateAverage(data),
-				'Max HR': Math.max(...data)
-			}]
-		);
+		let current = $moreData;
+		if (!(metricName in current)) {
+			current[metricName] = [];
+		}
+		current[metricName] = [...($moreData[metricName] || []), {
+			[sourceName]: sourceName,
+			[avgName]: avg,
+			[maxName]: max,
+		}];
+		moreData.set(current);
 	};
 
 	const drawChart = async (field, value) => {
@@ -122,10 +141,13 @@
 					addPowerData(s.name, rawData);
 					break;
 				case 'cadence':
-					addCadenceData(s.name, rawData);
+					addAvgMaxData(s.name, 'cadence', rawData);
 					break;
 				case 'heart_rate':
-					addHrData(s.name, rawData);
+					addAvgMaxData(s.name, 'heart_rate', rawData);
+					break;
+				case 'altitude':
+					addAvgMaxData(s.name, 'altitude', rawData);
 					break;
 			}
 			seriesNames.add(s.name);
@@ -207,17 +229,20 @@
 	</div>
 	<div class="chart_wrapper">
 		<div id="chartContainer_cadence"></div>
-		{#if $cadenceData.length > 0}
-			<Table tableData={$cadenceData} style={blueStyle} />
+		{#if $moreData['cadence']?.length > 0}
+			<Table tableData={$moreData['cadence']} style={blueStyle} />
 		{/if}
 	</div>
 	<div class="chart_wrapper">
 		<div id="chartContainer_heart_rate"></div>
-		{#if $hrData.length > 0}
-			<Table tableData={$hrData} style={blueStyle} />
+		{#if $moreData['heart_rate']?.length > 0}
+			<Table tableData={$moreData['heart_rate']} style={blueStyle} />
 		{/if}
 	</div>
 	<div class="chart_wrapper">
 		<div id="chartContainer_altitude"></div>
+		{#if $moreData['altitude']?.length > 0}
+			<Table tableData={$moreData['altitude']} style={blueStyle} />
+		{/if}
 	</div>
 </div>
