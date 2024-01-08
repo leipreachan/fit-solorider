@@ -2,7 +2,7 @@
 <script>
 	import { onMount, afterUpdate } from 'svelte';
 	import Highcharts from 'highcharts';
-	import { get, writable } from 'svelte/store';
+	import { writable } from 'svelte/store';
 	import Table from './Table.svelte';
 
 
@@ -38,7 +38,7 @@
 
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
-			options.title.text = metricName;
+			options.title.text = metricName.replace('_', ' ');
 			options.yAxis.title.text = priority.get(metricName);
 			console.log(metricName);
 			charts.set(metricName, Highcharts.chart(`chartContainer_${metricName}`, options));
@@ -147,20 +147,28 @@
 </script>
 
 <style>
-    /* Add your styles here */
+    .chart_wrapper {
+				margin-bottom: 3em;
+		}
 </style>
 
 <div id="container_wrapper">
-	<div id="chartContainer_power"></div>
-	{#if $powerData.length > 0}
-		<Table tableData={$powerData} style={blueStyle} />
-	{/if}
-	<div id="chartContainer_cadence"></div>
-	{#if $cadenceData.length > 0}
-		<Table tableData={$cadenceData} style={blueStyle} />
-	{/if}
-	<div id="chartContainer_heart_rate"></div>
-	{#if $hrData.length > 0}
-		<Table tableData={$hrData} style={blueStyle} />
-	{/if}
+	<div class="chart_wrapper">
+		<div id="chartContainer_power"></div>
+		{#if $powerData.length > 0}
+			<Table tableData={$powerData} style={blueStyle} />
+		{/if}
+	</div>
+	<div class="chart_wrapper">
+		<div id="chartContainer_cadence"></div>
+		{#if $cadenceData.length > 0}
+			<Table tableData={$cadenceData} style={blueStyle} />
+		{/if}
+	</div>
+	<div class="chart_wrapper">
+		<div id="chartContainer_heart_rate"></div>
+		{#if $hrData.length > 0}
+			<Table tableData={$hrData} style={blueStyle} />
+		{/if}
+	</div>
 </div>
