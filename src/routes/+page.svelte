@@ -1,5 +1,6 @@
 <!-- src/routes/+page.svelte -->
 <script>
+	import { MetaTags } from 'svelte-meta-tags';
 	import FitParser from 'fit-file-parser';
 	import Highcharts from '../components/Highcharts.svelte';
 
@@ -19,7 +20,7 @@
 			const fitParser = new FitParser({
 				force: true,
 				speedUnit: 'km/h',
-				lengthUnit: 'm',
+				lengthUnit: 'm'
 			});
 
 			fitParser.parse(arrayBuffer, (error, data) => {
@@ -28,7 +29,7 @@
 					return;
 				}
 				// console.log(data);
-				const rideName = (data?.devices[0]?.manufacturer || "") + " " + (data?.devices[0]?.product_name || file.name);
+				const rideName = (data?.devices[0]?.manufacturer || '') + ' ' + (data?.devices[0]?.product_name || file.name);
 				metricsData[index++] = { name: rideName, data: data.records };
 			});
 		}
@@ -37,20 +38,48 @@
 	const clear = () => {
 		metricsData = [];
 	};
+
+	const title = 'Simple FIT file analyser';
+	const desc = 'Compare FIT files data - power, cadence, HR. The app doesn\'t store anything and works in your browser, no strings attached.';
+	const hostAddr = 'fit.solorider.cc';
+
+	$: metaTags = {
+		titleTemplate: title, // Default title template.
+		description: desc, // Default description.
+		openGraph: {
+			siteName: hostAddr,
+			images: [
+				{
+					url: `https://${hostAddr}/og-image.webp`,
+					width: 800,
+					height: 600,
+					alt: 'Og Image Alt'
+				}
+			]
+		},
+		twitter: {
+			site: '@site',
+			cardType: 'summary_large_image',
+			image: `https://${hostAddr}/og-image.webp`,
+			imageAlt: 'Twitter image alt'
+		}
+	};
 </script>
 
 <style>
     /* Add your styles here */
 </style>
 
+<MetaTags {...metaTags} />
+
 <main>
 	{#if metricsData.length === 0}
-		Compare FIT files data - power, cadence, HR. The app doesn't store anything and works in your browser, no strings attached.
+		{desc}
 		<br>
 	{/if}
 	<input type="file" id="fileInput" multiple on:change={handleFileUpload} accept=".fit" />
 	{#if metricsData.length > 0}
 		<button on:click={clear}>Clear dataset</button>
-		<Highcharts {metricsData}/>
+		<Highcharts {metricsData} />
 	{/if}
 </main>
