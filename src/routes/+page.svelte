@@ -75,7 +75,6 @@
 <MetaTags {...metaTags} />
 
 <Tracker />
-<SupportMe />
 
 <main>
 	{#if metricsData.length === 0}
@@ -88,3 +87,5 @@
 		<Highcharts {metricsData} />
 	{/if}
 </main>
+
+<SupportMe />
