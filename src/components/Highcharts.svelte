@@ -81,6 +81,10 @@
 		return Math.round(data.reduce((acc, curr) => acc + curr, 0) / data.length);
 	};
 
+	const calculateMax = (data) => {
+		return Math.round(Math.max(...data));
+	};
+
 	const percDiff = (a, b) => {
 		return ' Δ' + Math.round((b - a) * 100 / a) + '%';
 	};
@@ -108,23 +112,21 @@
 		moreData.set(current);
 	};
 
-	const addAvgMaxData = (sourceName, metricName, data) => {
-		let avg = calculateAverage(data);
-		let max = Math.round(Math.max(...data));
-		const avgName = `Average ${metricName}`;
-		const maxName = `Max ${metricName}`;
+	const addAvgMaxData = (sourceName, metricName, data, fields = {
+		'Average': calculateAverage,
+		'Max': calculateMax
+	}) => {
+
+		const newValues = {[sourceName]: sourceName};
 		const m = $moreData[metricName] || [];
-		if (m.length > 0) {
-			avg = avg + percDiff(m[0][avgName], avg);
-			max = max + percDiff(m[0][maxName], max);
+		for (let [k, cb] of Object.entries(fields)) {
+			let val = cb(data);
+			const mName = `${k} ${metricName}`;
+			newValues[mName] = m.length > 0 ? val + percDiff(m[0][mName], val) : val;
 		}
 
 		let current = $moreData;
-		current[metricName] = [...m, {
-			[sourceName]: sourceName,
-			[avgName]: avg,
-			[maxName]: max
-		}];
+		current[metricName] = [...m, newValues];
 		moreData.set(current);
 	};
 
@@ -214,12 +216,12 @@
 
 <div id="container_wrapper">
 	{#each priority.keys() as key}
-			<div class="chart_wrapper">
-				<div id={"chartContainer_" + key}></div>
-				{#if $moreData[key]?.length > 0}
-					<Table tableData={$moreData[key]} style={blueStyle} />
-				{/if}
-			</div>
+		<div class="chart_wrapper">
+			<div id={"chartContainer_" + key}></div>
+			{#if $moreData[key]?.length > 0}
+				<Table tableData={$moreData[key]} style={blueStyle} />
+			{/if}
+		</div>
 		{#if key === "power" }
 			{#if $moreData[key]?.length > 1}
 				<div class="range">
