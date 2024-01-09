@@ -3,7 +3,8 @@
 	import { MetaTags } from 'svelte-meta-tags';
 	import FitParser from 'fit-file-parser';
 	import Highcharts from '../components/Highcharts.svelte';
-	import { browser } from '$app/environment';
+	import Tracker from '../components/Tracker.svelte';
+	import SupportMe from '../components/SupportMe.svelte';
 
 	let files = [];
 	let metricsData = [];
@@ -73,9 +74,8 @@
 
 <MetaTags {...metaTags} />
 
-{#if browser}
-	<script async src="https://ooo.me2.ru/script.js" data-website-id="ca266852-c15c-482f-a34b-38cefe004d68"></script>
-{/if}
+<Tracker />
+<SupportMe />
 
 <main>
 	{#if metricsData.length === 0}
