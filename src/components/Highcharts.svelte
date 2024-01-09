@@ -90,26 +90,11 @@
 	};
 
 	const addPowerData = (name, data) => {
-		let avg = calculateAverage(data);
-		let norm = calculateNormalizedPower(data);
-		let max = Math.max(...data);
-		const avgName = 'Average Power';
-		const normName = 'Normalised Power';
-		const maxName = 'Max Power';
-		const m = $moreData['power'] || [];
-		if (m.length > 0) {
-			avg = avg + percDiff(m[0][avgName], avg);
-			norm = norm + percDiff(m[0][normName], norm);
-			max = max + percDiff(m[0][maxName], max);
-		}
-		let current = $moreData;
-		current['power'] = [...m, {
-			[sourceName]: sourceName,
-			[avgName]: avg,
-			[normName]: norm,
-			[maxName]: max
-		}];
-		moreData.set(current);
+		addAvgMaxData(name, 'power', data, {
+			'Average': calculateAverage,
+			'Normalised': calculateNormalizedPower,
+			'Max': calculateMax
+		})
 	};
 
 	const addAvgMaxData = (sourceName, metricName, data, fields = {
@@ -222,14 +207,12 @@
 				<Table tableData={$moreData[key]} style={blueStyle} />
 			{/if}
 		</div>
-		{#if key === "power" }
-			{#if $moreData[key]?.length > 1}
+		{#if key === "power" && $moreData[key]?.length > 1}
 				<div class="range">
 					Shift second chart by:<br>
 					<input type="range" min="-120" max="120" bind:value on:change={handleOnRangeChange}><br>{value}
 					seconds
 				</div>
-			{/if}
 		{/if}
 	{/each}
 </div>
