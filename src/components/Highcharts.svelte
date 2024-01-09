@@ -24,8 +24,14 @@
 		chart: {
 			zoomType: 'x'
 		},
+		plotOptions: {
+			series: {
+				lineWidth: 1
+			}
+		},
 		xAxis: {
-			type: 'datetime'
+			type: 'datetime',
+			crosshair: true
 		},
 		yAxis: {
 			title: {
