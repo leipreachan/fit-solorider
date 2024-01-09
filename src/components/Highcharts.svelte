@@ -20,6 +20,7 @@
 		title: {
 			text: ''
 		},
+		colors: [ "#fe6a35", "#6b8abc", "#d568fb", "#2ee0ca", "#fa4b42", "#feb56a", "#91e8e1", "#2caffe", "#544fc5", "#00e272" ],
 		chart: {
 			zoomType: 'x'
 		},
@@ -37,13 +38,14 @@
 	let charts = new Map();
 	let seriesNames = new Set();
 
-	const priority = new Map([['power', 'watts'], ['cadence', 'rpm'], ['heart_rate', 'bpm'], ['altitude', 'meters'], ['temperature', 'degrees']]);
+	const priority = new Map([['power', ['watts']], ['cadence', ['rpm']], ['heart_rate', ['bpm']], ['altitude', ['meters', 'area']], ['temperature', ['degrees']]]);
 	const exclude = new Set(['timestamp', 'position_lat', 'position_long', 'elapsed_time', 'timer_time']);
 
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
-			options.yAxis.title.text = priority.get(metricName);
+			options.yAxis.title.text = priority.get(metricName)[0];
+			options.chart.type = priority.get(metricName)[1] || 'line';
 			charts.set(metricName, Highcharts.chart(`chartContainer_${metricName}`, options));
 		}
 		return charts.get(metricName);
@@ -205,6 +207,8 @@
 			<div id={"chartContainer_" + key}></div>
 			{#if $moreData[key]?.length > 0}
 				<Table tableData={$moreData[key]} style={blueStyle} />
+			{:else}
+				<center>No {key} data found in the uploaded files</center>
 			{/if}
 		</div>
 		{#if key === "power" && $moreData[key]?.length > 1}
