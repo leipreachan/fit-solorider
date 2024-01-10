@@ -120,6 +120,24 @@
 		return Math.round(Math.max(...data));
 	};
 
+	const caluclateTotalElevation = (altitudeData) => {
+		let elevationGain = 0;
+		let previousAltitude = altitudeData[0];
+
+		for (let i = 1; i < altitudeData.length; i++) {
+			const currentAltitude = altitudeData[i];
+			const altitudeChange = currentAltitude - previousAltitude;
+
+			if (altitudeChange > 0) {
+				elevationGain += altitudeChange;
+			}
+
+			previousAltitude = currentAltitude;
+		}
+
+		return Math.round(elevationGain);
+	};
+
 	const percDiff = (a, b) => {
 		return ' Δ' + Math.round(((b - a) * 100) / a) + '%';
 	};
@@ -129,6 +147,15 @@
 			Average: calculateAverage,
 			Normalised: calculateNormalizedPower,
 			Max: calculateMax
+		});
+	};
+
+	const addAltitudeData = (name, data) => {
+		addAvgMaxData(name, 'altitude', data, {
+			Average: calculateAverage,
+			Normalised: calculateNormalizedPower,
+			Max: calculateMax,
+			Total: caluclateTotalElevation
 		});
 	};
 
@@ -169,7 +196,7 @@
 					addAvgMaxData(s.name, 'heart_rate', rawData);
 					break;
 				case 'altitude':
-					addAvgMaxData(s.name, 'altitude', rawData);
+					addAltitudeData(s.name, rawData);
 					break;
 			}
 			seriesNames.add(s.name);
