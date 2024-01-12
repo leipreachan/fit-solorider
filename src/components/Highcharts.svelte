@@ -12,8 +12,10 @@
 	const originalSeries = new Map();
 	let metricNames = new Set();
 
+	let shift = writable([0, 0]);
 	let moreData = writable({});
 	let value = '0';
+	let minutes = '0';
 	const blueStyle = 'blueTable';
 
 	const options = {
@@ -232,8 +234,8 @@
 		}
 	});
 
-	function handleOnRangeChange(event) {
-		const ms = event.target.value * 1000;
+	function shiftChart() {
+		const ms = $shift.reduce((sum, cur) => sum + cur, 0);
 		for (let k of priority.keys()) {
 			// console.log(k);
 			const chrt = initChart(k);
@@ -245,6 +247,16 @@
 			chrt.series[1].setData(data);
 			chrt.redraw(true);
 		}
+	}
+
+	function handleOnMinutesChange(event) {
+		shift.set([event.target.value * 60 * 1000, $shift[1]]);
+		shiftChart();
+	}
+
+	function handleOnRangeChange(event) {
+		shift.set([$shift[0], event.target.value * 1000]);
+		shiftChart();
 	}
 </script>
 
@@ -262,8 +274,8 @@
 			<div class="range">
 				Shift second chart by:<br />
 				<input type="range" min="-120" max="120" bind:value on:change={handleOnRangeChange} /><br
-				/>{value}
-				seconds
+				/>
+				<input id="minutes_shift" value={minutes} size="2" on:change={handleOnMinutesChange}> minutes and {value} seconds
 			</div>
 		{/if}
 	{/each}

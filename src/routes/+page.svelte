@@ -30,7 +30,7 @@
 					console.error('Error parsing FIT file:', error);
 					return;
 				}
-				// console.log(data);
+				console.log(data);
 				const rideName = (data?.devices[0]?.manufacturer || '') + ' ' + (data?.devices[0]?.product_name || file.name);
 				metricsData[index++] = { name: rideName, data: data.records };
 			});
@@ -39,6 +39,7 @@
 
 	const clear = () => {
 		metricsData = [];
+		document.getElementById('fileInput').value = null;
 	};
 
 	const title = 'Simple FIT file analyser';
