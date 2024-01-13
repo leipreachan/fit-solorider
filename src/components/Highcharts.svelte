@@ -289,7 +289,7 @@
 					</div>
 				</div>
 				<div class="flex items-center justify-center">
-					<Input type="number" min="0" class="max-w-14 p-2 border rounded mr-2" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
+					<Input type="number" class="max-w-14 p-2 border rounded mr-2" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
 					<div>minutes {value} seconds</div>
 				</div>
 			</div>
