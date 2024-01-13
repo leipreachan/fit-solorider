@@ -143,7 +143,7 @@
 	};
 
 	const percDiff = (a, b) => {
-		return Math.round(((b - a) * 100) / a);
+		return a === 0? 100: Math.round(((b - a) * 100) / a);
 	};
 
 	const addPowerData = (name, data) => {
@@ -188,6 +188,7 @@
 		let current = $moreData;
 		current[metricName] = [...m, newValues];
 		moreData.set(current);
+		console.log($moreData);
 	};
 
 	const drawChart = async (field, value) => {
@@ -207,6 +208,8 @@
 				case 'altitude':
 					addAltitudeData(s.name, rawData);
 					break;
+				default:
+					addAvgMaxData(s.name, field, rawData);
 			}
 			seriesNames.add(s.name);
 		});
