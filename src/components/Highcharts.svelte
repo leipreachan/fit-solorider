@@ -69,13 +69,14 @@
 		['altitude', ['meters', 'area']],
 		['temperature', ['degrees']]
 	]);
-	const exclude = new Set([
-		'timestamp',
-		'position_lat',
-		'position_long',
-		'elapsed_time',
-		'timer_time'
-	]);
+
+	const rangeTicks = [
+		{ value: minRange, style: 'start-0' },
+		{ value: Math.round(minRange / 2), style: 'start-1/4 -translate-x-1/2 rtl:translate-x-1/2' },
+		{ value: 0, style: 'start-2/4 -translate-x-1/2 rtl:translate-x-1/2' },
+		{ value: Math.round(maxRange / 2), style: 'start-3/4 -translate-x-1/2 rtl:translate-x-1/2' },
+		{ value: maxRange, style: 'end-0' }
+	];
 
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
@@ -192,7 +193,7 @@
 			Max: calculateMax
 		}
 	) => {
-		const newValues = { [sourceNameParam]: {value: sourceName} };
+		const newValues = { [sourceNameParam]: { value: sourceName } };
 		const m = $moreData[metricName] || [];
 		for (let [k, cb] of Object.entries(fields)) {
 			const value = cb(data);
@@ -309,24 +310,11 @@
 							bind:value
 							on:change={handleOnRangeChange}
 						/>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6"
-							>{minRange}s</span
-						>
-						<span
-							class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
-							>{Math.round(minRange / 2)}s</span
-						>
-						<span
-							class="text-sm text-gray-500 dark:text-gray-400 absolute start-2/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
-							>0s</span
-						>
-						<span
-							class="text-sm text-gray-500 dark:text-gray-400 absolute start-3/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
-							>{Math.round(maxRange / 2)}s</span
-						>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6"
-							>{maxRange}s</span
-						>
+						{#each rangeTicks as tick}
+							<span class="tick {tick.style}">
+								{tick.value}s
+							</span>
+						{/each}
 					</div>
 				</div>
 				<div class="flex items-center justify-center">
@@ -347,5 +335,9 @@
 <style>
 	.chart_wrapper {
 		@apply mb-10;
+	}
+
+	.tick {
+		@apply text-sm text-gray-500 dark:text-gray-400 absolute -bottom-6;
 	}
 </style>
