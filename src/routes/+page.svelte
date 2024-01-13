@@ -1,5 +1,6 @@
 <!-- src/routes/+page.svelte -->
 <script>
+	import { Button, Fileupload } from 'flowbite-svelte';
 	import { MetaTags } from 'svelte-meta-tags';
 	import FitParser from 'fit-file-parser';
 	import Highcharts from '../components/Highcharts.svelte';
@@ -82,9 +83,9 @@
 		{desc}
 		<br>
 	{/if}
-	<input type="file" id="fileInput" multiple on:change={handleFileUpload} accept=".fit" />
+	<Fileupload id="fileInput" multiple on:change={handleFileUpload} accept=".fit" class="inline-block w-2/4" />
 	{#if metricsData.length > 0}
-		<button on:click={clear}>Clear dataset</button>
+		<Button on:click={clear}>Clear dataset</Button>
 		<Highcharts {metricsData} />
 	{/if}
 </main>
