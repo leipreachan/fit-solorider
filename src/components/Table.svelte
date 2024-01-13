@@ -12,7 +12,7 @@
         <TableHeadCell>{columnHeading}</TableHeadCell>
     {/each}
 	</TableHead>
-	<TableBody class="divide-y">
+	<TableBody>
 	{#each Object.values(tableData) as row}
 		<TableBodyRow>
 			{#each Object.values(row) as cell}
