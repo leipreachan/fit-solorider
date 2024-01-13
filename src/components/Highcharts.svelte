@@ -19,7 +19,6 @@
 	let moreData = writable({});
 	let value = '0';
 	let minutes = '0';
-	const blueStyle = 'blueTable';
 
 	const options = {
 		title: {
@@ -144,7 +143,7 @@
 	};
 
 	const percDiff = (a, b) => {
-		return ' Δ' + Math.round(((b - a) * 100) / a) + '%';
+		return Math.round(((b - a) * 100) / a);
 	};
 
 	const addPowerData = (name, data) => {
@@ -176,9 +175,14 @@
 		const newValues = { [sourceNameParam]: sourceName };
 		const m = $moreData[metricName] || [];
 		for (let [k, cb] of Object.entries(fields)) {
-			let val = cb(data);
+			const val = cb(data) || 0;
 			const mName = `${k} ${metricName}`;
-			newValues[mName] = m.length > 0 ? val + percDiff(m[0][mName], val) : val;
+			let diff = 0;
+			if (m.length > 0) {
+				const compareWith = m[0][mName];
+				diff = percDiff(compareWith.value, val);
+			}
+			newValues[mName] = {value: val, diff};
 		}
 
 		let current = $moreData;
@@ -268,9 +272,9 @@
 		<div class="chart_wrapper">
 			<div id={'chartContainer_' + key}></div>
 			{#if $moreData[key]?.length > 0}
-				<Table tableData={$moreData[key]} style={blueStyle} />
+				<Table tableData={$moreData[key]}/>
 			{:else}
-				<center>No {key} data found in the uploaded files</center>
+				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
@@ -299,6 +303,6 @@
 
 <style>
 	.chart_wrapper {
-		margin-bottom: 3em;
+		@apply mb-10;
 	}
 </style>

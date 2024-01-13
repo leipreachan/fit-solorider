@@ -1,5 +1,5 @@
 <script>
-      import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Checkbox, TableSearch } from 'flowbite-svelte';
+	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Badge, Checkbox, TableSearch } from 'flowbite-svelte';
 
 	export let tableData = [];
 	export let style;
@@ -16,7 +16,7 @@
 	{#each Object.values(tableData) as row}
 		<TableBodyRow>
 			{#each Object.values(row) as cell}
-				<TableBodyCell>{cell}</TableBodyCell>
+				<TableBodyCell>{cell.value !=undefined ? cell.value : cell}{#if cell.diff !== undefined && cell.diff != 0}<Badge color={(cell["diff"]>0)?"red":"blue"}>{cell.diff}%</Badge>{/if}</TableBodyCell>
 			{/each}
 		</TableBodyRow>
 	{/each}
