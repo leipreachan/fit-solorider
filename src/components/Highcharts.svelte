@@ -1,6 +1,7 @@
 <!-- src/components/Highcharts.svelte -->
 <script>
 	import { onMount, afterUpdate } from 'svelte';
+	import { Input } from 'flowbite-svelte';
 	import Highcharts from 'highcharts';
 	import { writable } from 'svelte/store';
 	import Table from './Table.svelte';
@@ -271,11 +272,17 @@
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
-			<div class="range">
-				Shift second chart by:<br />
-				<input type="range" min="-120" max="120" bind:value on:change={handleOnRangeChange} /><br
-				/>
-				<input id="minutes_shift" value={minutes} size="2" on:change={handleOnMinutesChange}> minutes and {value} seconds
+			<div class="mb-10">
+				<div class="flex flex flex-col items-center">
+					<div class="mb-2">
+						Shift second chart by:
+					</div>
+					<Input type="range" class="w-1/2" min="-120" max="120" bind:value on:change={handleOnRangeChange} />
+				</div>
+				<div class="flex items-center justify-center">
+					<Input id="time_shift" class="max-w-8 p-2 border rounded mr-4" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
+					<div>minutes and {value} seconds</div>
+				</div>
 			</div>
 		{/if}
 	{/each}
@@ -284,14 +291,5 @@
 <style>
 	.chart_wrapper {
 		margin-bottom: 3em;
-	}
-
-	.range {
-		font-family: Helvetica, serif;
-		text-align: center;
-	}
-
-	.range [type='range'] {
-		width: 800px;
 	}
 </style>
