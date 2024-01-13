@@ -3,6 +3,7 @@
 	import { Button, Fileupload } from 'flowbite-svelte';
 	import { MetaTags } from 'svelte-meta-tags';
 	import FitParser from 'fit-file-parser';
+	import Header from '../components/Header.svelte';
 	import Highcharts from '../components/Highcharts.svelte';
 	import Tracker from '../components/Tracker.svelte';
 	import SupportMe from '../components/SupportMe.svelte';
@@ -43,13 +44,13 @@
 		document.getElementById('fileInput').value = null;
 	};
 
-	const title = 'Simple FIT file analyser';
-	const desc = 'Compare FIT files data - power, cadence, HR. The app doesn\'t store anything and works in your browser, no strings attached.';
+	const titleTemplate = 'Simple FIT file analyser';
+	const description = 'Compare FIT files data - power, cadence, HR. The app doesn\'t store anything and works in your browser, no strings attached.';
 	const hostAddr = 'fit.solorider.cc';
 
 	$: metaTags = {
-		titleTemplate: title, // Default title template.
-		description: desc, // Default description.
+		titleTemplate, // Default title template.
+		description, // Default description.
 		openGraph: {
 			siteName: hostAddr,
 			images: [
@@ -79,15 +80,18 @@
 <Tracker />
 
 <main>
-	{#if metricsData.length === 0}
-		{desc}
-		<br>
-	{/if}
-	<Fileupload id="fileInput" multiple on:change={handleFileUpload} accept=".fit" class="inline-block w-2/4" />
+	<div class="my-4">
+		{#if metricsData.length === 0}
+			<Header {description} />
+		{/if}
+		<Fileupload id="fileInput" multiple on:change={handleFileUpload} accept=".fit" class="inline-block w-2/4" />
+		{#if metricsData.length > 0}
+			<Button on:click={clear}>Clear dataset</Button>
+		{/if}
+	</div>
 	{#if metricsData.length > 0}
-		<Button on:click={clear}>Clear dataset</Button>
 		<Highcharts {metricsData} />
 	{/if}
-</main>
 
-<SupportMe />
+	<SupportMe />
+</main>
