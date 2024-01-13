@@ -1,7 +1,7 @@
 <!-- src/components/Highcharts.svelte -->
 <script>
 	import { onMount, afterUpdate } from 'svelte';
-	import { Input } from 'flowbite-svelte';
+	import { Input, Range } from 'flowbite-svelte';
 	import Highcharts from 'highcharts';
 	import { writable } from 'svelte/store';
 	import Table from './Table.svelte';
@@ -11,6 +11,8 @@
 	export let metricsData = [];
 	const newSeries = new Map();
 	const originalSeries = new Map();
+	const minRange = -65;
+	const maxRange = 65;
 	let metricNames = new Set();
 
 	let shift = writable([0, 0]);
@@ -273,15 +275,22 @@
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
 			<div class="mb-10">
-				<div class="flex flex flex-col items-center">
-					<div class="mb-2">
+				<div class="flex flex flex-col items-center mb-4">
+					<div class="mb-3">
 						Shift second chart by:
 					</div>
-					<Input type="range" class="w-1/2" min="-120" max="120" bind:value on:change={handleOnRangeChange} />
+					<div class="relative w-1/2 mb-6">
+						<Range id="range" min="{minRange}" max="{maxRange}" bind:value on:change={handleOnRangeChange}/>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6">{minRange}s</span>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">{Math.round(minRange/2)}s</span>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-2/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">0s</span>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-3/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">{Math.round(maxRange/2)}s</span>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6">{maxRange}s</span>
+					</div>
 				</div>
 				<div class="flex items-center justify-center">
-					<Input id="time_shift" class="max-w-8 p-2 border rounded mr-4" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
-					<div>minutes and {value} seconds</div>
+					<Input type="number" min="0" class="max-w-14 p-2 border rounded mr-2" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
+					<div>minutes {value} seconds</div>
 				</div>
 			</div>
 		{/if}
