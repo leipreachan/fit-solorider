@@ -94,7 +94,20 @@
 		}
 	});
 
-	const calculateNormalizedPower = (dataPoints) => {
+	const isNumber = (n) => {
+		return !isNaN(parseFloat(n)) && !isNaN(n - 0);
+	};
+
+	const getNumsFromData = (data) => {
+		return data.filter((x) => isNumber(x));
+	};
+
+	const calculateNormalizedPower = (data) => {
+		const dataPoints = getNumsFromData(data);
+		if (dataPoints.length === 0) {
+			return null;
+		}
+
 		const windowSize = 30; // Rolling 30-second window size
 
 		// Step 1: Calculate rolling 30-second average power
@@ -117,19 +130,26 @@
 	};
 
 	const calculateAverage = (data) => {
-		return Math.round(data.reduce((acc, curr) => acc + curr, 0) / data.length);
+		const nums = getNumsFromData(data);
+		return nums.length > 0
+			? Math.round(nums.reduce((acc, curr) => acc + curr, 0) / nums.length)
+			: null;
 	};
 
 	const calculateMax = (data) => {
-		return Math.round(Math.max(...data));
+		const nums = getNumsFromData(data);
+		return nums.length > 0 ? Math.round(Math.max(...nums)) : null;
 	};
 
-	const caluclateTotalElevation = (altitudeData) => {
+	const caluclateTotalElevation = (data) => {
+		if (getNumsFromData(data).length === 0) {
+			return null;
+		}
 		let elevationGain = 0;
-		let previousAltitude = altitudeData[0];
+		let previousAltitude = data[0];
 
-		for (let i = 1; i < altitudeData.length; i++) {
-			const currentAltitude = altitudeData[i];
+		for (let i = 1; i < data.length; i++) {
+			const currentAltitude = data[i];
 			const altitudeChange = currentAltitude - previousAltitude;
 
 			if (altitudeChange > 0) {
@@ -143,7 +163,7 @@
 	};
 
 	const percDiff = (a, b) => {
-		return a === 0? 100: Math.round(((b - a) * 100) / a);
+		return a === 0 ? 100 : Math.round(((b - a) * 100) / a);
 	};
 
 	const addPowerData = (name, data) => {
@@ -172,23 +192,26 @@
 			Max: calculateMax
 		}
 	) => {
-		const newValues = { [sourceNameParam]: sourceName };
+		const newValues = { [sourceNameParam]: {value: sourceName} };
 		const m = $moreData[metricName] || [];
 		for (let [k, cb] of Object.entries(fields)) {
-			const val = cb(data) || 0;
+			const value = cb(data);
 			const mName = `${k} ${metricName}`;
 			let diff = 0;
-			if (m.length > 0) {
-				const compareWith = m[0][mName];
-				diff = percDiff(compareWith.value, val);
+			if (
+				m.length > 0 !== null &&
+				m[0] !== undefined &&
+				m[0][mName].value !== null &&
+				value !== null
+			) {
+				diff = percDiff(m[0][mName].value, value);
 			}
-			newValues[mName] = {value: val, diff};
+			newValues[mName] = { value, diff };
 		}
 
 		let current = $moreData;
 		current[metricName] = [...m, newValues];
 		moreData.set(current);
-		console.log($moreData);
 	};
 
 	const drawChart = async (field, value) => {
@@ -198,12 +221,6 @@
 			switch (field) {
 				case 'power':
 					addPowerData(s.name, rawData);
-					break;
-				case 'cadence':
-					addAvgMaxData(s.name, 'cadence', rawData);
-					break;
-				case 'heart_rate':
-					addAvgMaxData(s.name, 'heart_rate', rawData);
 					break;
 				case 'altitude':
 					addAltitudeData(s.name, rawData);
@@ -275,7 +292,7 @@
 		<div class="chart_wrapper">
 			<div id={'chartContainer_' + key}></div>
 			{#if $moreData[key]?.length > 0}
-				<Table tableData={$moreData[key]}/>
+				<Table tableData={$moreData[key]} />
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
@@ -283,20 +300,43 @@
 		{#if key === 'power' && $moreData[key]?.length > 1}
 			<div class="mb-10">
 				<div class="flex flex flex-col items-center mb-4">
-					<div class="mb-3">
-						Shift second chart by:
-					</div>
+					<div class="mb-3">Shift second chart by:</div>
 					<div class="relative w-1/2 mb-6">
-						<Range id="range" min="{minRange}" max="{maxRange}" bind:value on:change={handleOnRangeChange}/>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6">{minRange}s</span>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">{Math.round(minRange/2)}s</span>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-2/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">0s</span>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-3/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6">{Math.round(maxRange/2)}s</span>
-						<span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6">{maxRange}s</span>
+						<Range
+							id="range"
+							min={minRange}
+							max={maxRange}
+							bind:value
+							on:change={handleOnRangeChange}
+						/>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6"
+							>{minRange}s</span
+						>
+						<span
+							class="text-sm text-gray-500 dark:text-gray-400 absolute start-1/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+							>{Math.round(minRange / 2)}s</span
+						>
+						<span
+							class="text-sm text-gray-500 dark:text-gray-400 absolute start-2/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+							>0s</span
+						>
+						<span
+							class="text-sm text-gray-500 dark:text-gray-400 absolute start-3/4 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6"
+							>{Math.round(maxRange / 2)}s</span
+						>
+						<span class="text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6"
+							>{maxRange}s</span
+						>
 					</div>
 				</div>
 				<div class="flex items-center justify-center">
-					<Input type="number" class="max-w-14 p-2 border rounded mr-2" maxlength="2" value={minutes} on:change={handleOnMinutesChange} />
+					<Input
+						type="number"
+						class="max-w-14 p-2 border rounded mr-2"
+						maxlength="2"
+						value={minutes}
+						on:change={handleOnMinutesChange}
+					/>
 					<div>minutes {value} seconds</div>
 				</div>
 			</div>
