@@ -1,9 +1,9 @@
 <!-- src/components/Highcharts.svelte -->
 <script>
 	import { onMount, afterUpdate } from 'svelte';
-	import { Input, Range } from 'flowbite-svelte';
 	import Highcharts from 'highcharts';
 	import { writable } from 'svelte/store';
+	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
 
 	const sourceNameParam = 'Source';
@@ -17,8 +17,6 @@
 
 	let shift = writable([0, 0]);
 	let moreData = writable({});
-	let value = '0';
-	let minutes = '0';
 
 	function logExtremes(event) {
 		// console.log(event);
@@ -76,14 +74,6 @@
 		['altitude', {units: 'meters', shortUnits: ' m', type: 'area'}],
 		['temperature', {units: 'degrees', shortUnits: '°'}]
 	]);
-
-	const rangeTicks = [
-		{ value: minRange, style: 'start-0' },
-		{ value: Math.round(minRange / 2), style: 'start-1/4 -translate-x-1/2 rtl:translate-x-1/2' },
-		{ value: 0, style: 'start-2/4 -translate-x-1/2 rtl:translate-x-1/2' },
-		{ value: Math.round(maxRange / 2), style: 'start-3/4 -translate-x-1/2 rtl:translate-x-1/2' },
-		{ value: maxRange, style: 'end-0' }
-	];
 
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
@@ -313,6 +303,7 @@
 		shift.set([$shift[0], event.target.value * 1000]);
 		shiftChart();
 	}
+
 </script>
 
 <div id="container_wrapper">
@@ -326,35 +317,7 @@
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
-			<div class="mb-10">
-				<div class="flex flex flex-col items-center mb-4">
-					<div class="mb-3">Shift second chart by:</div>
-					<div class="relative w-1/2 mb-6">
-						<Range
-							id="range"
-							min={minRange}
-							max={maxRange}
-							bind:value
-							on:change={handleOnRangeChange}
-						/>
-						{#each rangeTicks as tick}
-							<span class="tick {tick.style}">
-								{tick.value}s
-							</span>
-						{/each}
-					</div>
-				</div>
-				<div class="flex items-center justify-center">
-					<Input
-						type="number"
-						class="max-w-14 p-2 border rounded mr-2"
-						maxlength="2"
-						value={minutes}
-						on:change={handleOnMinutesChange}
-					/>
-					<div>minutes {value} seconds</div>
-				</div>
-			</div>
+			<Shifter {...{minRange, maxRange, handleOnRangeChange, handleOnMinutesChange}} />
 		{/if}
 	{/each}
 </div>
