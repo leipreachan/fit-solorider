@@ -70,11 +70,11 @@
 	let seriesNames = new Set();
 
 	const priority = new Map([
-		['power', ['watts']],
-		['cadence', ['rpm']],
-		['heart_rate', ['bpm']],
-		['altitude', ['meters', 'area']],
-		['temperature', ['degrees']]
+		['power', {units: ' watts'}],
+		['cadence', {units: ' rpm'}],
+		['heart_rate', {units: ' bpm'}],
+		['altitude', {units: 'meters', shortUnits: ' m', type: 'area'}],
+		['temperature', {units: 'degrees', shortUnits: '°'}]
 	]);
 
 	const rangeTicks = [
@@ -88,8 +88,8 @@
 	const initChart = (metricName) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
-			options.yAxis.title.text = priority.get(metricName)[0];
-			options.chart.type = priority.get(metricName)[1] || 'line';
+			options.yAxis.title.text = priority.get(metricName).units;
+			options.chart.type = priority.get(metricName)?.type || 'line';
 			charts.set(metricName, Highcharts.chart(`chartContainer_${metricName}`, options));
 		}
 		return charts.get(metricName);
@@ -212,8 +212,9 @@
 			Max: calculateMax
 		}
 	) => {
-		const newValues = { [sourceNameParam]: { value: sourceName } };
+		const newValues = { [sourceNameParam]: { value: sourceName, diff: '', units: '' } };
 		const m = $moreData[metricName] || [];
+		const units = priority.get(metricName)?.shortUnits || priority.get(metricName)?.units || '';
 		for (let [k, cb] of Object.entries(fields)) {
 			const value = cb(data);
 			const mName = `${k} ${metricName}`;
@@ -226,7 +227,7 @@
 			) {
 				diff = percDiff(m[0][mName].value, value);
 			}
-			newValues[mName] = { value, diff };
+			newValues[mName] = { value, diff, units };
 		}
 
 		let current = $moreData;

@@ -27,8 +27,8 @@
 				<TableBodyRow>
 					{#each Object.values(row) as cell}
 						<TableBodyCell>
-							{cell.value === null ? '-' : cell.value}
-							{#if cell.diff !== undefined && cell.diff != 0}
+							{cell.value === null ? '-' : (cell.value + cell.units)}
+							{#if cell.diff != 0}
 								<Badge color={cell['diff'] > 0 ? 'red' : 'blue'}>{cell.diff}%</Badge>
 							{/if}
 						</TableBodyCell>
