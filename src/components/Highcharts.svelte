@@ -144,6 +144,11 @@
 			: null;
 	};
 
+	const calculateMin = (data) => {
+		const nums = getNumsFromData(data);
+		return nums.length > 0 ? Math.round(Math.min(...nums)) : null;
+	};
+
 	const calculateMax = (data) => {
 		const nums = getNumsFromData(data);
 		return nums.length > 0 ? Math.round(Math.max(...nums)) : null;
@@ -182,12 +187,19 @@
 		});
 	};
 
+	const addTemperatureData = (name, data) => {
+		addAvgMaxData(name, 'temperature', data, {
+			Average: calculateAverage,
+			Min: calculateMin,
+			Max: calculateMax,
+		});
+	};
+
 	const addAltitudeData = (name, data) => {
 		addAvgMaxData(name, 'altitude', data, {
 			Average: calculateAverage,
-			Normalised: calculateNormalizedPower,
 			Max: calculateMax,
-			Total: caluclateTotalElevation
+			Gained: caluclateTotalElevation
 		});
 	};
 
@@ -227,6 +239,9 @@
 				case 'power':
 					addPowerData(sourceName, rawData);
 					break;
+				case 'temperature':
+					addTemperatureData(sourceName, rawData);
+					break;				
 				case 'altitude':
 					addAltitudeData(sourceName, rawData);
 					break;
