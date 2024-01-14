@@ -20,6 +20,10 @@
 	let value = '0';
 	let minutes = '0';
 
+	function logExtremes(event) {
+		// console.log(event);
+	}
+
 	const options = {
 		title: {
 			text: ''
@@ -49,7 +53,10 @@
 		},
 		xAxis: {
 			type: 'datetime',
-			crosshair: true
+			crosshair: true,
+			events: {
+				afterSetExtremes: logExtremes
+			}
 		},
 		yAxis: {
 			title: {
@@ -215,20 +222,24 @@
 		moreData.set(current);
 	};
 
+	const prepareTableData = (field, sourceName, rawData) => {
+		switch (field) {
+				case 'power':
+					addPowerData(sourceName, rawData);
+					break;
+				case 'altitude':
+					addAltitudeData(sourceName, rawData);
+					break;
+				default:
+					addAvgMaxData(sourceName, field, rawData);
+			}
+	}
+
 	const drawChart = async (field, value) => {
 		value.forEach((s) => {
 			initChart(field).addSeries({ name: s.name, data: s.data }, false);
 			const rawData = s.data.map((x) => x[1]);
-			switch (field) {
-				case 'power':
-					addPowerData(s.name, rawData);
-					break;
-				case 'altitude':
-					addAltitudeData(s.name, rawData);
-					break;
-				default:
-					addAvgMaxData(s.name, field, rawData);
-			}
+			prepareTableData(field, s.name, rawData);
 			seriesNames.add(s.name);
 		});
 		initChart(field).redraw();
