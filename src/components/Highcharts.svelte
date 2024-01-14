@@ -326,8 +326,4 @@
 	.chart_wrapper {
 		@apply mb-10;
 	}
-
-	.tick {
-		@apply text-sm text-gray-500 dark:text-gray-400 absolute -bottom-6;
-	}
 </style>
