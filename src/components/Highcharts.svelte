@@ -7,6 +7,7 @@
 	import Table from './Table.svelte';
 
 	const sourceNameParam = 'Source';
+	const containerName = 'chartContainer_';
 
 	export let metricsData = [];
 	const newSeries = new Map();
@@ -17,9 +18,18 @@
 
 	let shift = writable([0, 0]);
 	let moreData = writable({});
+	let extraData = writable({});
 
 	function logExtremes(event) {
-		// console.log(event);
+		// if (event.userMin && event.userMax) {
+		// 	const selectedBits = event.target.chart.series.map((s) =>
+		// 		s.data.filter((v) => v.x >= event.userMin && v.x <= event.userMax)
+		// 	);
+		// 	const field = event.target.chart.container.parentNode.id.replace(containerName, '');
+		// 	selectedBits.forEach((v, k) => {
+		// 		prepareTableData(field, k, v);
+		// 	});
+		// }
 	}
 
 	const options = {
@@ -68,11 +78,11 @@
 	let seriesNames = new Set();
 
 	const priority = new Map([
-		['power', {units: ' watts'}],
-		['cadence', {units: ' rpm'}],
-		['heart_rate', {units: ' bpm'}],
-		['altitude', {units: 'meters', shortUnits: ' m', type: 'area'}],
-		['temperature', {units: 'degrees', shortUnits: '°'}]
+		['power', { units: ' watts' }],
+		['cadence', { units: ' rpm' }],
+		['heart_rate', { units: ' bpm' }],
+		['altitude', { units: 'meters', shortUnits: ' m', type: 'area' }],
+		['temperature', { units: 'degrees', shortUnits: '°' }]
 	]);
 
 	const initChart = (metricName) => {
@@ -80,7 +90,8 @@
 			options.title.text = metricName.replace('_', ' ');
 			options.yAxis.title.text = priority.get(metricName).units;
 			options.chart.type = priority.get(metricName)?.type || 'line';
-			charts.set(metricName, Highcharts.chart(`chartContainer_${metricName}`, options));
+			const chart = Highcharts.chart(`${containerName}${metricName}`, options);
+			charts.set(metricName, chart);
 		}
 		return charts.get(metricName);
 	};
@@ -144,7 +155,7 @@
 		return nums.length > 0 ? Math.round(Math.max(...nums)) : null;
 	};
 
-	const caluclateTotalElevation = (data) => {
+	const calculateTotalElevation = (data) => {
 		if (getNumsFromData(data).length === 0) {
 			return null;
 		}
@@ -169,27 +180,27 @@
 		return a === 0 ? 100 : Math.round(((b - a) * 100) / a);
 	};
 
-	const addPowerData = (name, data) => {
-		addAvgMaxData(name, 'power', data, {
+	const addPowerData = (name, data, firstRow) => {
+		return addAvgMaxData(name, 'power', data, firstRow, {
 			Average: calculateAverage,
 			Normalised: calculateNormalizedPower,
 			Max: calculateMax
 		});
 	};
 
-	const addTemperatureData = (name, data) => {
-		addAvgMaxData(name, 'temperature', data, {
+	const addTemperatureData = (name, data, firstRow) => {
+		return addAvgMaxData(name, 'temperature', data, firstRow, {
 			Average: calculateAverage,
 			Min: calculateMin,
-			Max: calculateMax,
+			Max: calculateMax
 		});
 	};
 
-	const addAltitudeData = (name, data) => {
-		addAvgMaxData(name, 'altitude', data, {
+	const addAltitudeData = (name, data, firstRow) => {
+		return addAvgMaxData(name, 'altitude', data, firstRow, {
 			Average: calculateAverage,
 			Max: calculateMax,
-			Gained: caluclateTotalElevation
+			Gained: calculateTotalElevation
 		});
 	};
 
@@ -197,59 +208,66 @@
 		sourceName,
 		metricName,
 		data,
+		firstRow,
 		fields = {
 			Average: calculateAverage,
 			Max: calculateMax
-		}
+		},
 	) => {
-		const newValues = { [sourceNameParam]: { value: sourceName, diff: '', units: '' } };
-		const m = $moreData[metricName] || [];
+		let result = { [sourceNameParam]: { value: sourceName, diff: '', units: '' } };
 		const units = priority.get(metricName)?.shortUnits || priority.get(metricName)?.units || '';
 		for (let [k, cb] of Object.entries(fields)) {
 			const value = cb(data);
 			const mName = `${k} ${metricName}`;
 			let diff = 0;
 			if (
-				m.length > 0 !== null &&
-				m[0] !== undefined &&
-				m[0][mName].value !== null &&
+				firstRow.length > 0 &&
+				mName in firstRow && 
 				value !== null
 			) {
-				diff = percDiff(m[0][mName].value, value);
+				diff = percDiff(firstRow[mName].value, value);
 			}
-			newValues[mName] = { value, diff, units };
+			result[mName] = { value, diff, units };
 		}
-
-		let current = $moreData;
-		current[metricName] = [...m, newValues];
-		moreData.set(current);
+		return result;
 	};
 
-	const prepareTableData = (field, sourceName, rawData) => {
+	const prepareTableData = (field, sourceName, rawData, firstRow) => {
 		switch (field) {
-				case 'power':
-					addPowerData(sourceName, rawData);
-					break;
-				case 'temperature':
-					addTemperatureData(sourceName, rawData);
-					break;				
-				case 'altitude':
-					addAltitudeData(sourceName, rawData);
-					break;
-				default:
-					addAvgMaxData(sourceName, field, rawData);
-			}
-	}
+			case 'power':
+				return addPowerData(sourceName, rawData, firstRow);
+				break;
+			case 'temperature':
+				return addTemperatureData(sourceName, rawData, firstRow);
+				break;
+			case 'altitude':
+				return addAltitudeData(sourceName, rawData, firstRow);
+				break;
+			default:
+				return addAvgMaxData(sourceName, field, rawData, firstRow);
+		}
+	};
 
 	const drawChart = async (field, value) => {
-		value.forEach((s) => {
-			initChart(field).addSeries({ name: s.name, data: s.data }, false);
-			const rawData = s.data.map((x) => x[1]);
-			prepareTableData(field, s.name, rawData);
-			seriesNames.add(s.name);
+		const chart = initChart(field);
+		value.forEach(({name, data}) => {
+			chart.addSeries({ name, data }, false);
+			seriesNames.add(name);
 		});
-		initChart(field).redraw();
+		chart.redraw();
 	};
+
+	const drawTables = async (field, value) => {
+		const current = $moreData;
+		let tableData = current[field] || [];
+		value.forEach((s) => {
+			const rawData = s.data.map((x) => x[1]);
+			const dt = prepareTableData(field, s.name, rawData, tableData[0] || []);
+			tableData.push(dt);
+		});
+		current[field] = tableData;
+		moreData.set(current);
+	}
 
 	const getMetricNames = async (data) => {
 		metricNames = new Set(data.flatMap((fit) => fit.data.flatMap((x) => Object.keys(x))));
@@ -273,6 +291,7 @@
 
 			for (const [field, value] of newSeries) {
 				drawChart(field, value);
+				drawTables(field, value);
 			}
 
 			getMetricNames(metricsData);
@@ -303,21 +322,20 @@
 		shift.set([$shift[0], event.target.value * 1000]);
 		shiftChart();
 	}
-
 </script>
 
 <div id="container_wrapper">
 	{#each priority.keys() as key}
 		<div class="chart_wrapper">
-			<div id={'chartContainer_' + key}></div>
+			<div id={containerName + key}></div>
 			{#if $moreData[key]?.length > 0}
-				<Table tableData={$moreData[key]} />
+				<Table tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]} />
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
-			<Shifter {...{minRange, maxRange, handleOnRangeChange, handleOnMinutesChange}} />
+			<Shifter {...{ minRange, maxRange, handleOnRangeChange, handleOnMinutesChange }} />
 		{/if}
 	{/each}
 </div>
