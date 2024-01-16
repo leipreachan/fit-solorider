@@ -220,9 +220,10 @@
 			const value = cb(data);
 			const mName = `${k} ${metricName}`;
 			let diff = 0;
+			const frm = Object.entries(firstRow[mName] || {});
 			if (
-				firstRow.length > 0 &&
-				mName in firstRow && 
+				frm.length > 0 &&
+				firstRow[mName].value !== null &&
 				value !== null
 			) {
 				diff = percDiff(firstRow[mName].value, value);
@@ -262,7 +263,7 @@
 		let tableData = current[field] || [];
 		value.forEach((s) => {
 			const rawData = s.data.map((x) => x[1]);
-			const dt = prepareTableData(field, s.name, rawData, tableData[0] || []);
+			const dt = prepareTableData(field, s.name, rawData, tableData[0] || {});
 			tableData.push(dt);
 		});
 		current[field] = tableData;
