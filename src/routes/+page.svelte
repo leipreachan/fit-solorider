@@ -1,18 +1,24 @@
 <!-- src/routes/+page.svelte -->
-<script>
+<script lang="ts">
 	import { Button, Fileupload } from 'flowbite-svelte';
-	import { MetaTags } from 'svelte-meta-tags';
 	import FitParser from 'fit-file-parser';
+	import MyMeta from '../components/MyMeta.svelte';
 	import Header from '../components/Header.svelte';
 	import Highcharts from '../components/Highcharts.svelte';
 	import Tracker from '../components/Tracker.svelte';
 	import SupportMe from '../components/SupportMe.svelte';
 
-	let files = [];
-	let metricsData = [];
+	let files: any[] = [];
+	let metricsData: any[] = [];
+
+	const fileInputName = 'fileInput';
+
+	const getUploadElement = () => {
+		return document.getElementById(fileInputName) as HTMLInputElement | null;
+	}
 
 	const handleFileUpload = () => {
-		const input = document.getElementById('fileInput');
+		const input = getUploadElement();
 		files = Array.from(input?.files || []);
 		parseFitFiles();
 	};
@@ -27,64 +33,65 @@
 				lengthUnit: 'm'
 			});
 
-			fitParser.parse(arrayBuffer, (error, data) => {
-				if (error) {
-					console.error('Error parsing FIT file:', error);
-					return;
+			fitParser.parse(
+				arrayBuffer,
+				(
+					error: any,
+					data: {
+						devices: {
+							manufacturer: string;
+							product_name: any;
+						}[];
+						records: any;
+					}
+				) => {
+					if (error) {
+						console.error('Error parsing FIT file:', error);
+						return;
+					}
+					console.log(data);
+					const rideName =
+						(data?.devices[0]?.manufacturer || '') +
+						' ' +
+						(data?.devices[0]?.product_name || file.name);
+					metricsData[index++] = { name: rideName, data: data.records };
 				}
-				console.log(data);
-				const rideName = (data?.devices[0]?.manufacturer || '') + ' ' + (data?.devices[0]?.product_name || file.name);
-				metricsData[index++] = { name: rideName, data: data.records };
-			});
+			);
 		}
 	};
 
 	const clear = () => {
 		metricsData = [];
-		document.getElementById('fileInput').value = null;
+
+		const fileInput = getUploadElement();
+		if (fileInput) {
+			fileInput.value = "";
+		}
 	};
 
 	const titleTemplate = 'Simple FIT file analyser';
-	const description = 'Compare FIT files data - power, cadence, HR. The app doesn\'t store anything and works in your browser, no strings attached.';
-	const hostAddr = 'fit.solorider.cc';
-
-	$: metaTags = {
-		titleTemplate, // Default title template.
-		description, // Default description.
-		openGraph: {
-			siteName: hostAddr,
-			images: [
-				{
-					url: `https://${hostAddr}/og-image.webp`,
-					width: 800,
-					height: 600,
-					alt: 'Og Image Alt'
-				}
-			]
-		},
-		twitter: {
-			site: '@site',
-			cardType: 'summary_large_image',
-			image: `https://${hostAddr}/og-image.webp`,
-			imageAlt: 'Twitter image alt'
-		}
-	};
+	const description =
+		"Compare FIT files data - power, cadence, HR. The app doesn't store anything and works in your browser, no strings attached.";
 </script>
 
-<style>
-    /* Add your styles here */
-</style>
-
-<MetaTags {...metaTags} />
-
-<Tracker />
+<MyMeta titleTemplate={titleTemplate} description={description} />
+<svelte:head>
+	<title>{titleTemplate}</title>
+	<Tracker />
+</svelte:head>
 
 <main>
 	<div class="my-4">
 		{#if metricsData.length === 0}
 			<Header {description} />
 		{/if}
-		<Fileupload id="fileInput" multiple on:change={handleFileUpload} accept=".fit" class="inline-block w-2/4" />
+		<Fileupload
+			id="fileInput"
+			multiple
+			on:change={handleFileUpload}
+			accept=".fit"
+			class="inline-block w-2/4"
+		/>
 		{#if metricsData.length > 0}
 			<Button on:click={clear}>Clear dataset</Button>
 		{/if}
@@ -95,3 +102,7 @@
 
 	<SupportMe />
 </main>
+
+<style>
+	/* Add your styles here */
+</style>
