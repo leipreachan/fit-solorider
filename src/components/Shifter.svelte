@@ -1,12 +1,24 @@
 <script>
     import { Input, Range } from 'flowbite-svelte';
 
-    export let minRange;
-	export let maxRange;
-    export let handleOnRangeChange;
-    export let handleOnMinutesChange;
+    /**
+	 * @type {number}
+	 */
+     export let minRange;
+	/**
+	 * @type {number}
+	 */
+	 export let maxRange;
+    /**
+	 * @type {((e: Event) => void) | null | undefined}
+	 */
+     export let handleOnRangeChange;
+    /**
+	 * @type {((e: Event) => void) | null | undefined}
+	 */
+     export let handleOnMinutesChange;
 
-    let value = '0';
+    let seconds = 0;
 	let minutes = '0';
 
 	const rangeTicks = [
@@ -26,7 +38,7 @@
                 id="range"
                 min={minRange}
                 max={maxRange}
-                bind:value
+                bind:value={seconds}
                 on:change={handleOnRangeChange}
             />
             {#each rangeTicks as tick}
@@ -37,13 +49,12 @@
         </div>
     </div>
     <div class="flex items-center justify-center">
-        
             <Input
             id="minutes_shift"
             type="number"
             class="max-w-14 mr-2"
             maxlength="2"
-            value={minutes}
+            bind:value={minutes}
             on:change={handleOnMinutesChange}
         />
         <label for="minutes_shift">minutes</label>
@@ -52,7 +63,7 @@
             type="number"
             class="max-w-16 mr-2 ml-4"
             maxlength="3"
-            bind:value
+            bind:value={seconds}
             on:change={handleOnRangeChange}
         /> 
         <label for="seconds_shift">seconds</label>
