@@ -11,7 +11,10 @@
 		TableSearch
 	} from 'flowbite-svelte';
 
-	export let tableData = [];
+	/**
+	 * @type {{ [s: number]: any; } | ArrayLike<number>}
+	 */
+	 export let tableData = [];
 </script>
 
 <div class="table-wrapper">
