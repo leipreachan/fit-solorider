@@ -12,7 +12,6 @@
 	} from 'flowbite-svelte';
 
 	export let tableData = [];
-	export let style;
 </script>
 
 <div class="table-wrapper">
@@ -42,9 +41,5 @@
 <style>
 	.table-wrapper {
 		@apply flex justify-center;
-	}
-
-	table {
-		@apply w-3/4 border-collapse;
 	}
 </style>
