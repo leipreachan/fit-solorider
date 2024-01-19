@@ -1,5 +1,5 @@
 <!-- src/components/Highcharts.svelte -->
-<script>
+<script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	import Highcharts from 'highcharts';
 	import { writable } from 'svelte/store';
@@ -9,7 +9,7 @@
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
 
-	export let metricsData = [];
+	export let metricsData: any[] = [];
 	const newSeries = new Map();
 	const originalSeries = new Map();
 	const minRange = -65;
@@ -17,10 +17,10 @@
 	let metricNames = new Set();
 
 	let shift = writable([0, 0]);
-	let moreData = writable({});
-	let extraData = writable({});
+	let moreData: any = writable({});
+	let extraData: any = writable({});
 
-	function logExtremes(event) {
+	function logExtremes(event: Event) {
 		// if (event.userMin && event.userMax) {
 		// 	const selectedBits = event.target.chart.series.map((s) =>
 		// 		s.data.filter((v) => v.x >= event.userMin && v.x <= event.userMax)
@@ -49,7 +49,8 @@
 			'#00e272'
 		],
 		chart: {
-			zoomType: 'x'
+			zoomType: 'x',
+			type: 'line'
 		},
 		tooltip: {
 			valueDecimals: 0
@@ -85,11 +86,12 @@
 		['temperature', { units: 'degrees', shortUnits: '°' }]
 	]);
 
-	const initChart = (metricName) => {
+	const initChart = (metricName: string) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
-			options.yAxis.title.text = priority.get(metricName).units;
+			options.yAxis.title.text = priority.get(metricName)?.units || '';
 			options.chart.type = priority.get(metricName)?.type || 'line';
+			//@ts-ignore
 			const chart = Highcharts.chart(`${containerName}${metricName}`, options);
 			charts.set(metricName, chart);
 		}
@@ -103,15 +105,15 @@
 		}
 	});
 
-	const isNumber = (n) => {
+	const isNumber = (n: any) => {
 		return !isNaN(parseFloat(n)) && !isNaN(n - 0);
 	};
 
-	const getNumsFromData = (data) => {
+	const getNumsFromData = (data: any[]) => {
 		return data.filter((x) => isNumber(x));
 	};
 
-	const calculateNormalizedPower = (data) => {
+	const calculateNormalizedPower = (data: any[]) => {
 		const dataPoints = getNumsFromData(data);
 		if (dataPoints.length === 0) {
 			return null;
@@ -138,24 +140,24 @@
 		return Math.round(Math.pow(averageFourthPower, 1 / 4));
 	};
 
-	const calculateAverage = (data) => {
+	const calculateAverage = (data: any[]) => {
 		const nums = getNumsFromData(data);
 		return nums.length > 0
 			? Math.round(nums.reduce((acc, curr) => acc + curr, 0) / nums.length)
 			: null;
 	};
 
-	const calculateMin = (data) => {
+	const calculateMin = (data: any[]) => {
 		const nums = getNumsFromData(data);
 		return nums.length > 0 ? Math.round(Math.min(...nums)) : null;
 	};
 
-	const calculateMax = (data) => {
+	const calculateMax = (data: any[]) => {
 		const nums = getNumsFromData(data);
 		return nums.length > 0 ? Math.round(Math.max(...nums)) : null;
 	};
 
-	const calculateTotalElevation = (data) => {
+	const calculateTotalElevation = (data: any[]) => {
 		if (getNumsFromData(data).length === 0) {
 			return null;
 		}
@@ -176,56 +178,59 @@
 		return Math.round(elevationGain);
 	};
 
-	const percDiff = (a, b) => {
+	const percDiff = (a: number, b: number) => {
 		return a === 0 ? 100 : Math.round(((b - a) * 100) / a);
 	};
 
-	const addPowerData = (name, data, firstRow) => {
+	const addPowerData = (name: string, data: any, firstRow: { [x: string]: { value: any } }) => {
 		return addAvgMaxData(name, 'power', data, firstRow, {
 			Average: calculateAverage,
+			// @ts-ignore
 			Normalised: calculateNormalizedPower,
 			Max: calculateMax
 		});
 	};
 
-	const addTemperatureData = (name, data, firstRow) => {
+	const addTemperatureData = (
+		name: string,
+		data: any,
+		firstRow: { [x: string]: { value: any } }
+	) => {
 		return addAvgMaxData(name, 'temperature', data, firstRow, {
 			Average: calculateAverage,
+			// @ts-ignore
 			Min: calculateMin,
 			Max: calculateMax
 		});
 	};
 
-	const addAltitudeData = (name, data, firstRow) => {
+	const addAltitudeData = (name: string, data: any, firstRow: { [x: string]: { value: any } }) => {
 		return addAvgMaxData(name, 'altitude', data, firstRow, {
 			Average: calculateAverage,
 			Max: calculateMax,
+			// @ts-ignore
 			Gained: calculateTotalElevation
 		});
 	};
 
 	const addAvgMaxData = (
-		sourceName,
-		metricName,
-		data,
-		firstRow,
+		sourceName: string,
+		metricName: string,
+		data: any[],
+		firstRow: { [x: string]: { value: any } },
 		fields = {
 			Average: calculateAverage,
 			Max: calculateMax
-		},
+		}
 	) => {
-		let result = { [sourceNameParam]: { value: sourceName, diff: '', units: '' } };
+		const result: any = { [sourceNameParam]: { value: sourceName, diff: '', units: '' } };
 		const units = priority.get(metricName)?.shortUnits || priority.get(metricName)?.units || '';
 		for (let [k, cb] of Object.entries(fields)) {
 			const value = cb(data);
 			const mName = `${k} ${metricName}`;
 			let diff = 0;
 			const frm = Object.entries(firstRow[mName] || {});
-			if (
-				frm.length > 0 &&
-				firstRow[mName].value !== null &&
-				value !== null
-			) {
+			if (frm.length > 0 && firstRow[mName].value !== null && value !== null) {
 				diff = percDiff(firstRow[mName].value, value);
 			}
 			result[mName] = { value, diff, units };
@@ -233,7 +238,14 @@
 		return result;
 	};
 
-	const prepareTableData = (field, sourceName, rawData, firstRow) => {
+	const prepareTableData = (
+		field: string,
+		sourceName: string,
+		rawData: any[],
+		firstRow: {
+			[x: string]: { value: any } | { value: any };
+		}
+	) => {
 		switch (field) {
 			case 'power':
 				return addPowerData(sourceName, rawData, firstRow);
@@ -249,20 +261,20 @@
 		}
 	};
 
-	const drawChart = async (field, value) => {
+	async function drawChart(field: string, value: { name: any; data: any }[]) {
 		const chart = initChart(field);
-		value.forEach(({name, data}) => {
+		value.forEach(({ name, data }) => {
 			chart.addSeries({ name, data }, false);
 			seriesNames.add(name);
 		});
 		chart.redraw();
-	};
+	}
 
-	const drawTables = async (field, value) => {
-		const current = $moreData;
+	async function drawTables(field: string, value: any[]) {
+		const current: any = $moreData;
 		let tableData = current[field] || [];
 		value.forEach((s) => {
-			const rawData = s.data.map((x) => x[1]);
+			const rawData = s.data.map((x: any[]) => x[1]);
 			const dt = prepareTableData(field, s.name, rawData, tableData[0] || {});
 			tableData.push(dt);
 		});
@@ -270,11 +282,11 @@
 		moreData.set(current);
 	}
 
-	const getMetricNames = async (data) => {
-		metricNames = new Set(data.flatMap((fit) => fit.data.flatMap((x) => Object.keys(x))));
+	async function getMetricNames(data: any[]) {
+		metricNames = new Set(data.flatMap((fit) => fit.data.flatMap((x: {}) => Object.keys(x))));
 
 		// console.log(metricNames);
-	};
+	}
 
 	afterUpdate(() => {
 		// Update chart series when data changes
@@ -285,7 +297,10 @@
 					.filter((m) => !seriesNames.has(m.name))
 					.map((fit) => ({
 						name: fit.name,
-						data: fit.data.map((x) => [Date.parse(x.timestamp), x[fields[i]] || null])
+						data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
+							Date.parse(x.timestamp),
+							x[fields[i]] || null
+						])
 					}));
 				newSeries.set(fields[i], values);
 			}
@@ -314,13 +329,21 @@
 		}
 	}
 
-	function handleOnMinutesChange(event) {
-		shift.set([event.target.value * 60 * 1000, $shift[1]]);
+	/**
+	 * @param {Event | null | undefined} event
+	 */
+	function handleOnMinutesChange(event: Event | null | undefined) {
+		const target = event?.target as HTMLInputElement;
+		shift.set([parseInt(target.value) * 60 * 1000, $shift[1]]);
 		shiftChart();
 	}
 
-	function handleOnRangeChange(event) {
-		shift.set([$shift[0], event.target.value * 1000]);
+	/**
+	 * @param {Event | null | undefined} event
+	 */
+	function handleOnRangeChange(event: Event | null | undefined) {
+		const target = event?.target as HTMLInputElement;
+		shift.set([$shift[0], parseInt(target.value) * 1000]);
 		shiftChart();
 	}
 </script>
@@ -330,7 +353,9 @@
 		<div class="chart_wrapper">
 			<div id={containerName + key}></div>
 			{#if $moreData[key]?.length > 0}
-				<Table tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]} />
+				<Table
+					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}
+				/>
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
