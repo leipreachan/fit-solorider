@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
+	// import Accessibility from "highcharts/modules/accessibility";
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
@@ -71,6 +72,9 @@
 			title: {
 				text: ''
 			}
+		},
+		accessibility: {
+			enabled: false
 		}
 		// Add additional Highcharts configuration options as needed
 	};
@@ -99,6 +103,8 @@
 	};
 
 	onMount(() => {
+		// Accessibility(Highcharts);
+		
 		// Initialize Highcharts chart on mount
 		if ([...charts].length === 0) {
 			initChart('power');

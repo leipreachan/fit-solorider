@@ -10,7 +10,8 @@ const config = {
 		adapter: adapter()
 	},
 
-	preprocess: [vitePreprocess({})]
+	preprocess: [vitePreprocess({})],
+	optimizeDeps: { include: [ 'objection', 'knex', 'pg' ], exclude: [ 'pg-native' ] }
 };
 
 export default config;
