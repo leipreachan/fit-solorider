@@ -90,11 +90,14 @@
 		['temperature', { units: 'degrees', shortUnits: '°' }]
 	]);
 
-	const initChart = (metricName: string) => {
+	const initChart = (metricName: string, series: any|null = null) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
 			options.yAxis.title.text = priority.get(metricName)?.units || '';
 			options.chart.type = priority.get(metricName)?.type || 'line';
+			if (series !== null) {
+				options.series = series;
+			}
 			//@ts-ignore
 			const chart = Highcharts.chart(`${containerName}${metricName}`, options);
 			charts.set(metricName, chart);
@@ -320,17 +323,17 @@
 		}
 	});
 
-	function shiftChart() {
+	function shiftSeries(id: number) {
 		const ms = $shift.reduce((sum, cur) => sum + cur, 0);
 		for (let k of priority.keys()) {
 			// console.log(k);
 			const chrt = initChart(k);
 			if (originalSeries.get(k) === undefined) {
-				originalSeries.set(k, [...chrt.options.series[1].data]);
+				originalSeries.set(k, [...chrt.options.series[id].data]);
 			}
 			let data = [...originalSeries.get(k)];
 			data = data.map((x) => [x[0] + ms, x[1]]);
-			chrt.series[1].setData(data);
+			chrt.series[id].setData(data);
 			chrt.redraw(true);
 		}
 	}
@@ -341,7 +344,10 @@
 	function handleOnMinutesChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
 		shift.set([parseInt(target.value) * 60 * 1000, $shift[1]]);
-		shiftChart();
+		const l = charts.get('power').series.length;
+		for (let i = 1; i < l; i++) {
+			shiftSeries(i);
+		}
 	}
 
 	/**
@@ -350,7 +356,10 @@
 	function handleOnRangeChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
 		shift.set([$shift[0], parseInt(target.value) * 1000]);
-		shiftChart();
+		const l = charts.get('power').series.length;
+		for (let i = 1; i < l; i++) {
+			shiftSeries(i);
+		}
 	}
 </script>
 
