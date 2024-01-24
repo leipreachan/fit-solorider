@@ -80,7 +80,8 @@
 	};
 
 	let charts = new Map();
-	let seriesNames = new Set();
+	let chartSeriesNames = new Map();
+	let tableRowsNames = new Map();
 
 	const priority = new Map([
 		['power', { units: ' watts' }],
@@ -90,7 +91,7 @@
 		['temperature', { units: 'degrees', shortUnits: '°' }]
 	]);
 
-	const initChart = (metricName: string, series: any|null = null) => {
+	const initChart = (metricName: string, series: any | null = null) => {
 		if (!charts.has(metricName)) {
 			options.title.text = metricName.replace('_', ' ');
 			options.yAxis.title.text = priority.get(metricName)?.units || '';
@@ -107,11 +108,10 @@
 
 	onMount(() => {
 		// Accessibility(Highcharts);
-		
 		// Initialize Highcharts chart on mount
-		if ([...charts].length === 0) {
-			initChart('power');
-		}
+		// if ([...charts].length === 0) {
+		// initChart('power');
+		// }
 	});
 
 	const isNumber = (n: any) => {
@@ -273,20 +273,27 @@
 	async function drawChart(field: string, value: { name: any; data: any }[]) {
 		const chart = initChart(field);
 		value.forEach(({ name, data }) => {
-			chart.addSeries({ name, data }, false);
-			seriesNames.add(name);
+			const hash = name + field;
+			if (chartSeriesNames.has(hash)) {
+				const index = chartSeriesNames.get(hash);
+				chart.series[index].update({ name, value }, false);
+			} else {
+				chartSeriesNames.set(hash, chart.series.length);
+				chart.addSeries({ name, data }, false);
+			}
 		});
 		chart.redraw();
 	}
 
 	async function drawTables(field: string, value: any[]) {
 		const current: any = $moreData;
-		let tableData = current[field] || [];
-		value.forEach((s) => {
-			const rawData = s.data.map((x: any[]) => x[1]);
-			const dt = prepareTableData(field, s.name, rawData, tableData[0] || {});
-			tableData.push(dt);
-		});
+		let tableData = value.length === current[field]?.length ? current[field] : [];
+		const firstRow = tableData[0] || {};
+		tableData = value.reduce((accum, { name, data }) => {
+			const rawData = data.map((x: any[]) => x[1]);
+			const td = prepareTableData(field, name, rawData, firstRow);
+			return [...accum, td];
+		}, tableData);
 		current[field] = tableData;
 		moreData.set(current);
 	}
@@ -302,15 +309,13 @@
 		if (metricsData.length > 0) {
 			const fields = [...priority.keys()];
 			for (let i = 0; i < fields.length; i++) {
-				const values = metricsData
-					.filter((m) => !seriesNames.has(m.name))
-					.map((fit) => ({
-						name: fit.name,
-						data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
-							Date.parse(x.timestamp),
-							x[fields[i]] || null
-						])
-					}));
+				const values = metricsData.map((fit) => ({
+					name: fit.name,
+					data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
+						Date.parse(x.timestamp),
+						x[fields[i]] || null
+					])
+				}));
 				newSeries.set(fields[i], values);
 			}
 
