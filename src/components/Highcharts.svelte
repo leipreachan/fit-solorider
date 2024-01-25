@@ -79,9 +79,8 @@
 		// Add additional Highcharts configuration options as needed
 	};
 
-	let charts = new Map();
-	let chartSeriesNames = new Map();
-	let tableRowsNames = new Map();
+	const charts = new Map();
+	const chartSeriesNames = new Map();
 
 	const priority = new Map([
 		['power', { units: ' watts' }],
@@ -276,7 +275,7 @@
 			const hash = name + field;
 			if (chartSeriesNames.has(hash)) {
 				const index = chartSeriesNames.get(hash);
-				chart.series[index].update({ name, value }, false);
+				chart.series[index].update({ name, data }, false);
 			} else {
 				chartSeriesNames.set(hash, chart.series.length);
 				chart.addSeries({ name, data }, false);
@@ -287,9 +286,12 @@
 
 	async function drawTables(field: string, value: any[]) {
 		const current: any = $moreData;
-		let tableData = value.length === current[field]?.length ? current[field] : [];
+		let tableData = current[field] || [];
 		const firstRow = tableData[0] || {};
-		tableData = value.reduce((accum, { name, data }) => {
+		const sources = new Set(tableData.length > 0 ? tableData.map((x) => x.Source.value) : []);
+		tableData = value
+		.filter((x) => !sources.has(x.name))
+		.reduce((accum, { name, data }) => {
 			const rawData = data.map((x: any[]) => x[1]);
 			const td = prepareTableData(field, name, rawData, firstRow);
 			return [...accum, td];

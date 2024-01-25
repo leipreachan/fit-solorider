@@ -10,6 +10,8 @@
 
 	let files: any[] = [];
 	let metricsData: any[] = [];
+	let metricsDataStart: any[] = [];
+	let selectedAlignMethod: string = "";
 
 	const fileInputName = 'fileInput';
 
@@ -24,7 +26,6 @@
 	};
 
 	const parseFitFiles = async () => {
-		let index = 0;
 		for (const file of files) {
 			const arrayBuffer = await file.arrayBuffer();
 			const fitParser = new FitParser({
@@ -54,14 +55,18 @@
 						(data?.devices[0]?.manufacturer || '') +
 						' ' +
 						(data?.devices[0]?.product_name || file.name);
-					metricsData[index++] = { name: rideName, data: data.records };
+					metricsData = [...metricsData, { name: rideName, data: data.records }];
+					metricsDataStart = metricsData.map(({ data }) => data[0].timestamp);
 				}
 			);
+			alignActivities();
 		}
 	};
 
 	const clear = () => {
 		metricsData = [];
+		metricsDataStart = [];
+		selectedAlignMethod = "";
 
 		const fileInput = getUploadElement();
 		if (fileInput) {
@@ -74,40 +79,75 @@
 		"Compare FIT files data - power, cadence, HR. The app doesn't store anything and works in your browser, no strings attached.";
 
 	const selectOptions = [
-		{ value: 'alignNone', name: 'do not align activities' },
+		{ value: 'alignNone', name: 'do not align activities (reset)' },
 		{ value: 'alignByStart', name: 'align by start time of activities' },
 		{ value: 'alignByEnd', name: 'align by end time of acitivities' },
 		{ value: 'alignOneAfterAnother', name: 'activities follow each other' }
 	];
 
-	let selectedAlignMethod: string;
-
 	const alignNone = () => {
-		// metricsData = originalMetricsData;
+		const temp = metricsData;
+		for (let i = 1; i < temp.length; i++) {
+			const diff = temp[i].data[0]['timestamp'] - metricsDataStart[i];
+			temp[i].data = temp[i].data.map((x) => ({
+				...x,
+				timestamp: new Date(Date.parse(x.timestamp) - diff)
+			}));
+		}
+		metricsData = temp;
 	};
 
 	const alignByStart = () => {
 		const temp = metricsData;
-		if (temp.length > 1) {
-			const start = Date.parse(temp[0].data[0]['timestamp']);
-			for (let i = 1; i < temp.length; i++) {
-				const diff = temp[i].data[0]['timestamp'] - start;
-				temp[i].data = temp[i].data.map((x) => {
-					x.timestamp = new Date(Date.parse(x.timestamp) - diff);
-					return x;
-				});
-			}
+		const start = Date.parse(temp[0].data[0]['timestamp']);
+		for (let i = 1; i < temp.length; i++) {
+			const diff = temp[i].data[0]['timestamp'] - start;
+			temp[i].data = temp[i].data.map((x) => ({
+				...x,
+				timestamp: new Date(Date.parse(x.timestamp) - diff)
+			}));
 		}
 		metricsData = temp;
 	};
-	const alignByEnd = () => {};
-	const alignOneAfterAnother = () => {};
 
-	const alignActivities = (event: Event) => {
-		// console.log(event.target.value);
+	const alignByEnd = () => {
+		const temp = metricsData;
+		const last = Date.parse(temp[0].data[temp[0].data.length - 1]['timestamp']);
+		for (let i = 1; i < temp.length; i++) {
+			const data = temp[i].data;
+			const lastIndex = data.length - 1;
+			const diff = data[lastIndex]['timestamp'] - last;
+			temp[i].data = data.map((x) => ({
+				...x,
+				timestamp: new Date(Date.parse(x.timestamp) - diff)
+			}));
+		}
+		metricsData = temp;
+	};
+
+	const alignOneAfterAnother = () => {
+		const temp = metricsData;
+		for (let i = 1; i < temp.length; i++) {
+			const data = temp[i].data;
+			const last = Date.parse(temp[i - 1].data[temp[i - 1].data.length - 1]['timestamp']);
+			const diff = data[0]['timestamp'] - last;
+			temp[i].data = data.map((x) => ({
+				...x,
+				timestamp: new Date(Date.parse(x.timestamp) - diff)
+			}));
+		}
+		metricsData = temp;
+	};
+
+	const alignActivitiesHandler = () => {
 		if (metricsData.length > 1) {
-			const cb = event.target.value;
-			eval(cb)();
+			alignActivities();
+		}
+	};
+
+	const alignActivities = () => {
+		if (selectedAlignMethod.length > 0) {
+			eval(selectedAlignMethod)();
 		}
 	};
 </script>
@@ -130,12 +170,14 @@
 			accept=".fit"
 			class="inline-block w-2/4"
 		/>
-		<Select
-			class="inline-block w-1/4"
-			items={selectOptions}
-			bind:value={selectedAlignMethod}
-			on:change={alignActivities}
-		/>
+		{#if metricsData.length > 1}
+			<Select
+				class="inline-block w-1/4"
+				items={selectOptions}
+				bind:value={selectedAlignMethod}
+				on:change={alignActivitiesHandler}
+			/>
+		{/if}
 		{#if metricsData.length > 0}
 			<Button on:click={clear}>Clear dataset</Button>
 		{/if}

@@ -8,8 +8,8 @@
 		TableHeadCell,
 		Badge,
 		Checkbox,
-		TableSearch
 	} from 'flowbite-svelte';
+	import { beforeUpdate } from 'svelte';
 
 	/**
 	 * @type {{ [s: number]: any; } | ArrayLike<number>}
