@@ -11,7 +11,7 @@
 	let files: any[] = [];
 	let metricsData: any[] = [];
 	let metricsDataStart: any[] = [];
-	let selectedAlignMethod: string = "";
+	let selectedAlignMethod: string = '';
 
 	const fileInputName = 'fileInput';
 
@@ -66,7 +66,7 @@
 	const clear = () => {
 		metricsData = [];
 		metricsDataStart = [];
-		selectedAlignMethod = "";
+		selectedAlignMethod = '';
 
 		const fileInput = getUploadElement();
 		if (fileInput) {
@@ -139,6 +139,8 @@
 		metricsData = temp;
 	};
 
+	const optionFunctions = { alignNone, alignByStart, alignByEnd, alignOneAfterAnother };
+
 	const alignActivitiesHandler = () => {
 		if (metricsData.length > 1) {
 			alignActivities();
@@ -146,8 +148,9 @@
 	};
 
 	const alignActivities = () => {
-		if (selectedAlignMethod.length > 0) {
-			eval(selectedAlignMethod)();
+		const selectedFunction = optionFunctions[selectedAlignMethod];
+		if (selectedFunction) {
+			selectedFunction();
 		}
 	};
 </script>
