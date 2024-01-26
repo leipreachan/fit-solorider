@@ -9,7 +9,6 @@
 		Badge,
 		Checkbox,
 	} from 'flowbite-svelte';
-	import { beforeUpdate } from 'svelte';
 
 	/**
 	 * @type {{ [s: number]: any; } | ArrayLike<number>}

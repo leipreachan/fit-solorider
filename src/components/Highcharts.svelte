@@ -5,19 +5,20 @@
 	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
-	// import Accessibility from "highcharts/modules/accessibility";
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
 
 	export let metricsData: any[] = [];
+	export let metricsDataShift: any[] = [];
+
 	const newSeries = new Map();
-	const originalSeries = new Map();
+	// const originalSeries = new Map();
 	const minRange = -65;
 	const maxRange = 65;
 	let metricNames = new Set();
 
-	let shift = writable([0, 0]);
+	let syncShift = 0;
 	let moreData: any = writable({});
 	let extraData: any = writable({});
 
@@ -106,11 +107,6 @@
 	};
 
 	onMount(() => {
-		// Accessibility(Highcharts);
-		// Initialize Highcharts chart on mount
-		// if ([...charts].length === 0) {
-		// initChart('power');
-		// }
 	});
 
 	const isNumber = (n: any) => {
@@ -275,7 +271,7 @@
 			const hash = name + field;
 			if (chartSeriesNames.has(hash)) {
 				const index = chartSeriesNames.get(hash);
-				chart.series[index].update({ name, data }, false);
+				chart.series[index].update({data}, false);
 			} else {
 				chartSeriesNames.set(hash, chart.series.length);
 				chart.addSeries({ name, data }, false);
@@ -290,20 +286,18 @@
 		const firstRow = tableData[0] || {};
 		const sources = new Set(tableData.length > 0 ? tableData.map((x) => x.Source.value) : []);
 		tableData = value
-		.filter((x) => !sources.has(x.name))
-		.reduce((accum, { name, data }) => {
-			const rawData = data.map((x: any[]) => x[1]);
-			const td = prepareTableData(field, name, rawData, firstRow);
-			return [...accum, td];
-		}, tableData);
+			.filter((x) => !sources.has(x.name))
+			.reduce((accum, { name, data }) => {
+				const rawData = data.map((x: any[]) => x[1]);
+				const td = prepareTableData(field, name, rawData, firstRow);
+				return [...accum, td];
+			}, tableData);
 		current[field] = tableData;
 		moreData.set(current);
 	}
 
 	async function getMetricNames(data: any[]) {
 		metricNames = new Set(data.flatMap((fit) => fit.data.flatMap((x: {}) => Object.keys(x))));
-
-		// console.log(metricNames);
 	}
 
 	afterUpdate(() => {
@@ -326,23 +320,31 @@
 				drawTables(field, value);
 			}
 
+			shiftAllSeries();
+
 			getMetricNames(metricsData);
 		}
 	});
 
-	function shiftSeries(id: number) {
-		const ms = $shift.reduce((sum, cur) => sum + cur, 0);
+	function shiftAllSeries() {
+		// console.log({metricsDataShift, syncShift});
 		for (let k of priority.keys()) {
-			// console.log(k);
-			const chrt = initChart(k);
-			if (originalSeries.get(k) === undefined) {
-				originalSeries.set(k, [...chrt.options.series[id].data]);
-			}
-			let data = [...originalSeries.get(k)];
-			data = data.map((x) => [x[0] + ms, x[1]]);
-			chrt.series[id].setData(data);
-			chrt.redraw(true);
+			shiftSeriesOfSingleChart(k);
 		}
+	}
+
+	async function shiftSeriesOfSingleChart(k: string) {
+		const chrt = initChart(k);
+		for (let id=0; id<chrt.series.length; id++) {
+			const cummShift = id > 0 ? metricsDataShift[id] + syncShift : metricsDataShift[id];
+			const data = chrt.options.series[id].data.map((x) => [x[0] + cummShift, x[1]]);
+			chrt.series[id].update({data}, false);
+		}
+		chrt.redraw();
+	}
+
+	function updateShift(shift: number) {
+		syncShift = shift;
 	}
 
 	/**
@@ -350,11 +352,8 @@
 	 */
 	function handleOnMinutesChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
-		shift.set([parseInt(target.value) * 60 * 1000, $shift[1]]);
-		const l = charts.get('power').series.length;
-		for (let i = 1; i < l; i++) {
-			shiftSeries(i);
-		}
+		updateShift(parseInt(target.value) * 60 * 1000)
+		shiftAllSeries();
 	}
 
 	/**
@@ -362,11 +361,8 @@
 	 */
 	function handleOnRangeChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
-		shift.set([$shift[0], parseInt(target.value) * 1000]);
-		const l = charts.get('power').series.length;
-		for (let i = 1; i < l; i++) {
-			shiftSeries(i);
-		}
+		updateShift(parseInt(target.value) * 1000)
+		shiftAllSeries();
 	}
 </script>
 

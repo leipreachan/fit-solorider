@@ -10,7 +10,7 @@
 
 	let files: any[] = [];
 	let metricsData: any[] = [];
-	let metricsDataStart: any[] = [];
+	let metricsDataShift: any[] = [];
 	let selectedAlignMethod: string = '';
 
 	const fileInputName = 'fileInput';
@@ -56,7 +56,7 @@
 						' ' +
 						(data?.devices[0]?.product_name || file.name);
 					metricsData = [...metricsData, { name: rideName, data: data.records }];
-					metricsDataStart = metricsData.map(({ data }) => data[0].timestamp);
+					metricsDataShift = metricsData.map(() => 0);
 				}
 			);
 			alignActivities();
@@ -65,7 +65,7 @@
 
 	const clear = () => {
 		metricsData = [];
-		metricsDataStart = [];
+		metricsDataShift = [];
 		selectedAlignMethod = '';
 
 		const fileInput = getUploadElement();
@@ -86,57 +86,39 @@
 	];
 
 	const alignNone = () => {
-		const temp = metricsData;
-		for (let i = 1; i < temp.length; i++) {
-			const diff = temp[i].data[0]['timestamp'] - metricsDataStart[i];
-			temp[i].data = temp[i].data.map((x) => ({
-				...x,
-				timestamp: new Date(Date.parse(x.timestamp) - diff)
-			}));
-		}
-		metricsData = temp;
+		metricsDataShift = metricsDataShift.map(()=>0);
 	};
 
 	const alignByStart = () => {
-		const temp = metricsData;
-		const start = Date.parse(temp[0].data[0]['timestamp']);
-		for (let i = 1; i < temp.length; i++) {
-			const diff = temp[i].data[0]['timestamp'] - start;
-			temp[i].data = temp[i].data.map((x) => ({
-				...x,
-				timestamp: new Date(Date.parse(x.timestamp) - diff)
-			}));
+		const temp = [0];
+		const start = Date.parse(metricsData[0].data[0].timestamp);
+		for (let i = 1; i < metricsDataShift.length; i++) {
+			temp[i] = metricsData[i].data[0].timestamp - start;
 		}
-		metricsData = temp;
+		metricsDataShift = temp;
 	};
 
 	const alignByEnd = () => {
-		const temp = metricsData;
-		const last = Date.parse(temp[0].data[temp[0].data.length - 1]['timestamp']);
-		for (let i = 1; i < temp.length; i++) {
-			const data = temp[i].data;
+		const temp = [0];
+		const last = Date.parse(metricsData[0].data[metricsData[0].data.length - 1]['timestamp']);
+		for (let i = 1; i < metricsDataShift.length; i++) {
+			const data = metricsData[i].data;
 			const lastIndex = data.length - 1;
-			const diff = data[lastIndex]['timestamp'] - last;
-			temp[i].data = data.map((x) => ({
-				...x,
-				timestamp: new Date(Date.parse(x.timestamp) - diff)
-			}));
+			const diff = Date.parse(data[lastIndex]['timestamp']) - last;
+			temp[i] = diff;
 		}
-		metricsData = temp;
+		metricsDataShift = temp;
 	};
 
 	const alignOneAfterAnother = () => {
-		const temp = metricsData;
-		for (let i = 1; i < temp.length; i++) {
-			const data = temp[i].data;
-			const last = Date.parse(temp[i - 1].data[temp[i - 1].data.length - 1]['timestamp']);
-			const diff = data[0]['timestamp'] - last;
-			temp[i].data = data.map((x) => ({
-				...x,
-				timestamp: new Date(Date.parse(x.timestamp) - diff)
-			}));
+		const temp = [0];
+		for (let i = 1; i < metricsData.length; i++) {
+			const prevSeriesLastPointIndex = metricsData[i - 1].data.length - 1;
+			const prevSeriesLastPointTs = Date.parse(metricsData[i - 1].data[prevSeriesLastPointIndex].timestamp);
+			const diff = Date.parse(metricsData[i].data[0].timestamp) - prevSeriesLastPointTs;
+			temp[i] = diff;
 		}
-		metricsData = temp;
+		metricsDataShift = temp;
 	};
 
 	const optionFunctions = { alignNone, alignByStart, alignByEnd, alignOneAfterAnother };
@@ -186,7 +168,7 @@
 		{/if}
 	</div>
 	{#if metricsData.length > 0}
-		<Highcharts {metricsData} />
+		<Highcharts metricsData={metricsData} metricsDataShift={metricsDataShift} />
 	{/if}
 
 	<SupportMe />
