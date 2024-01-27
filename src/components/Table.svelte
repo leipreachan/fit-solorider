@@ -20,13 +20,13 @@
 	 * @type {function|null}
 	 */
 	export let selectedRowHandler = null;
-	let title = ""
+	let showLabel = typeof selectedRowHandler === 'function';
 </script>
 
 <div class="table-wrapper">
 	<Table hoverable={true}>
 		<TableHead>
-			{#if typeof selectedRowHandler === 'function'}
+			{#if showLabel}
 				<TableHeadCell />
 			{/if}
 			{#each Object.keys(tableData[0]) as columnHeading}
@@ -47,7 +47,7 @@
 					{/if}
 					{#each Object.values(row) as cell}
 						<TableBodyCell>
-							<Label for={typeof selectedRowHandler === 'function' ? row.Source.value : null}>
+							<Label class={showLabel ? "cursor-pointer" : null} for={showLabel ? row.Source.value : null}>
 								{cell.value === null ? '-' : cell.value + cell.units}
 								{#if cell.diff != 0}
 									<Badge color={cell['diff'] > 0 ? 'red' : 'blue'} title={"compared to the first row"}>{cell.diff}%</Badge>
@@ -62,6 +62,10 @@
 </div>
 
 <style>
+	.label {
+		@apply cursor-pointer;
+	}
+
 	.table-wrapper {
 		@apply flex justify-center;
 	}
