@@ -114,8 +114,8 @@
 		const temp = [0];
 		for (let i = 1; i < metricsData.length; i++) {
 			const prevSeriesLastPointIndex = metricsData[i - 1].data.length - 1;
-			const prevSeriesLastPointTs = Date.parse(metricsData[i - 1].data[prevSeriesLastPointIndex].timestamp);
-			const diff = Date.parse(metricsData[i].data[0].timestamp) - prevSeriesLastPointTs;
+			const prevSeriesLastPointTs = metricsData[i - 1].data[prevSeriesLastPointIndex].timestamp;
+			const diff = Date.parse(prevSeriesLastPointTs) - Date.parse(metricsData[i].data[0].timestamp);
 			temp[i] = diff;
 		}
 		metricsDataShift = temp;
