@@ -32,7 +32,7 @@
 
 <div class="mb-10">
     <div class="flex flex flex-col items-center mb-4">
-        <div class="mb-3">Shift second chart by:</div>
+        <div class="mb-3">Shift selected chart(s) by:</div>
         <div class="relative w-1/2 mb-6">
             <Range
                 id="range"
