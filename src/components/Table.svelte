@@ -20,6 +20,7 @@
 	 * @type {function|null}
 	 */
 	export let selectedRowHandler = null;
+	let title = ""
 </script>
 
 <div class="table-wrapper">
@@ -49,7 +50,7 @@
 							<Label for={typeof selectedRowHandler === 'function' ? row.Source.value : null}>
 								{cell.value === null ? '-' : cell.value + cell.units}
 								{#if cell.diff != 0}
-									<Badge color={cell['diff'] > 0 ? 'red' : 'blue'}>{cell.diff}%</Badge>
+									<Badge color={cell['diff'] > 0 ? 'red' : 'blue'} title={"compared to the first row"}>{cell.diff}%</Badge>
 								{/if}
 							</Label>
 						</TableBodyCell>
