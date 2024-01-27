@@ -13,7 +13,6 @@
 	export let metricsDataShift: any[] = [];
 
 	const newSeries = new Map();
-	// const originalSeries = new Map();
 	const minRange = -65;
 	const maxRange = 65;
 	let metricNames = new Set();
@@ -106,8 +105,7 @@
 		return charts.get(metricName);
 	};
 
-	onMount(() => {
-	});
+	onMount(() => {});
 
 	const isNumber = (n: any) => {
 		return !isNaN(parseFloat(n)) && !isNaN(n - 0);
@@ -271,13 +269,14 @@
 			const hash = name + field;
 			if (chartSeriesNames.has(hash)) {
 				const index = chartSeriesNames.get(hash);
-				chart.series[index].update({data}, false);
+				chart.series[index].update({ data }, false);
 			} else {
 				chartSeriesNames.set(hash, chart.series.length);
 				chart.addSeries({ name, data }, false);
 			}
 		});
 		chart.redraw();
+		return chart;
 	}
 
 	async function drawTables(field: string, value: any[]) {
@@ -316,31 +315,39 @@
 			}
 
 			for (const [field, value] of newSeries) {
-				drawChart(field, value);
+				const shiftedValue = calculateShiftedSeries(value);
+				console.log({value, shiftedValue});
+				drawChart(field, shiftedValue);
 				drawTables(field, value);
 			}
-
-			shiftAllSeries();
 
 			getMetricNames(metricsData);
 		}
 	});
 
 	function shiftAllSeries() {
-		// console.log({metricsDataShift, syncShift});
 		for (let k of priority.keys()) {
 			shiftSeriesOfSingleChart(k);
 		}
 	}
 
-	async function shiftSeriesOfSingleChart(k: string) {
-		const chrt = initChart(k);
-		for (let id=0; id<chrt.series.length; id++) {
+	function calculateShiftedSeries(value: any) {
+		const result = [];
+		for (let id = 0; id<value.length; id++) {
+			const data = value[id].data;
 			const cummShift = id > 0 ? metricsDataShift[id] + syncShift : metricsDataShift[id];
-			const data = chrt.options.series[id].data.map((x) => [x[0] + cummShift, x[1]]);
-			chrt.series[id].update({data}, false);
+			result.push({name: value[id].name, data: data.map((x) => [x[0] + cummShift, x[1]])});
 		}
-		chrt.redraw();
+		return result;
+	}
+
+	async function shiftSeriesOfSingleChart(k: string) {
+		const chart = initChart(k);
+		const series = calculateShiftedSeries(newSeries.get(k));
+		for (let id = 0; id < chart.series.length; id++) {
+			chart.series[id].update({ data: series[id].data }, false);
+		}
+		chart.redraw();
 	}
 
 	function updateShift(shift: number) {
@@ -352,7 +359,7 @@
 	 */
 	function handleOnMinutesChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
-		updateShift(parseInt(target.value) * 60 * 1000)
+		updateShift(parseInt(target.value) * 60 * 1000);
 		shiftAllSeries();
 	}
 
@@ -361,7 +368,7 @@
 	 */
 	function handleOnRangeChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
-		updateShift(parseInt(target.value) * 1000)
+		updateShift(parseInt(target.value) * 1000);
 		shiftAllSeries();
 	}
 </script>
