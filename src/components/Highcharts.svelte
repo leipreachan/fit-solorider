@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
+	import type { Checkbox } from 'flowbite-svelte';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
@@ -20,6 +21,7 @@
 	let syncShift = 0;
 	let moreData: any = writable({});
 	let extraData: any = writable({});
+	const selectedRows = new Set();
 
 	function logExtremes(event: Event) {
 		// if (event.userMin && event.userMax) {
@@ -315,7 +317,7 @@
 			}
 
 			for (const [field, value] of newSeries) {
-				const shiftedValue = calculateShiftedSeries(value);
+				const shiftedValue = calculateShiftedSeries(value, false);
 				drawChart(field, shiftedValue);
 				drawTables(field, value);
 			}
@@ -324,25 +326,29 @@
 		}
 	});
 
-	function shiftAllSeries() {
+	function shiftAllSeries(selectedOnly: boolean) {
 		for (let k of priority.keys()) {
-			shiftSeriesOfSingleChart(k);
+			shiftSeriesOfSingleChart(k, selectedOnly);
 		}
 	}
 
-	function calculateShiftedSeries(value: any) {
+	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
 		const result = [];
-		for (let id = 0; id<value.length; id++) {
+		for (let id = 0; id < value.length; id++) {
 			const data = value[id].data;
-			const cummShift = id > 0 ? metricsDataShift[id] + syncShift : metricsDataShift[id];
-			result.push({name: value[id].name, data: data.map((x) => [x[0] + cummShift, x[1]])});
+			const name = value[id].name;
+			let shift = metricsDataShift[id];
+			if (selectedOnly) {
+				shift = selectedRows.has(name) ? metricsDataShift[id] + syncShift : metricsDataShift[id];
+			}
+			result.push({ name, data: data.map((x) => [x[0] + shift, x[1]]) });
 		}
 		return result;
 	}
 
-	async function shiftSeriesOfSingleChart(k: string) {
+	async function shiftSeriesOfSingleChart(k: string, selectedOnly: boolean) {
 		const chart = initChart(k);
-		const series = calculateShiftedSeries(newSeries.get(k));
+		const series = calculateShiftedSeries(newSeries.get(k), selectedOnly);
 		for (let id = 0; id < chart.series.length; id++) {
 			chart.series[id].update({ data: series[id].data }, false);
 		}
@@ -359,7 +365,7 @@
 	function handleOnMinutesChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
 		updateShift(parseInt(target.value) * 60 * 1000);
-		shiftAllSeries();
+		shiftAllSeries(true);
 	}
 
 	/**
@@ -368,7 +374,16 @@
 	function handleOnRangeChange(event: Event | null | undefined) {
 		const target = event?.target as HTMLInputElement;
 		updateShift(parseInt(target.value) * 1000);
-		shiftAllSeries();
+		shiftAllSeries(true);
+	}
+
+	function selectedRowHandler(event: Event | null | undefined) {
+		const target = (event?.target as HTMLSelectElement).value || null;
+		if (selectedRows.has(target)) {
+			selectedRows.delete(target);
+		} else {
+			selectedRows.add(target);
+		}
 	}
 </script>
 
@@ -379,7 +394,7 @@
 			{#if $moreData[key]?.length > 0}
 				<Table
 					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}
-					selectedRowHandler={key === 'power'? (event)=>{console.log(event.target.value)}: null}
+					selectedRowHandler={key === 'power' ? selectedRowHandler : null}
 				/>
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>
