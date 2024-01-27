@@ -86,26 +86,25 @@
 	];
 
 	const alignNone = () => {
-		metricsDataShift = metricsDataShift.map(()=>0);
+		metricsDataShift = metricsDataShift.map(() => 0);
 	};
 
 	const alignByStart = () => {
 		const temp = [0];
 		const start = Date.parse(metricsData[0].data[0].timestamp);
 		for (let i = 1; i < metricsDataShift.length; i++) {
-			temp[i] = -(metricsData[i].data[0].timestamp - start);
+			temp[i] = start - metricsData[i].data[0].timestamp;
 		}
 		metricsDataShift = temp;
 	};
 
 	const alignByEnd = () => {
 		const temp = [0];
-		const last = Date.parse(metricsData[0].data[metricsData[0].data.length - 1]['timestamp']);
+		const last = Date.parse(metricsData[0].data[metricsData[0].data.length - 1].timestamp);
 		for (let i = 1; i < metricsDataShift.length; i++) {
 			const data = metricsData[i].data;
 			const lastIndex = data.length - 1;
-			const diff = Date.parse(data[lastIndex]['timestamp']) - last;
-			temp[i] = diff;
+			temp[i] = last - Date.parse(data[lastIndex].timestamp);
 		}
 		metricsDataShift = temp;
 	};
@@ -115,8 +114,10 @@
 		for (let i = 1; i < metricsData.length; i++) {
 			const prevSeriesLastPointIndex = metricsData[i - 1].data.length - 1;
 			const prevSeriesLastPointTs = metricsData[i - 1].data[prevSeriesLastPointIndex].timestamp;
-			const diff = Date.parse(prevSeriesLastPointTs) - Date.parse(metricsData[i].data[0].timestamp);
-			temp[i] = diff;
+			temp[i] =
+				Date.parse(prevSeriesLastPointTs) -
+				Date.parse(metricsData[i].data[0].timestamp) +
+				temp[i - 1];
 		}
 		metricsDataShift = temp;
 	};
@@ -168,7 +169,7 @@
 		{/if}
 	</div>
 	{#if metricsData.length > 0}
-		<Highcharts metricsData={metricsData} metricsDataShift={metricsDataShift} />
+		<Highcharts {metricsData} {metricsDataShift} />
 	{/if}
 
 	<SupportMe />

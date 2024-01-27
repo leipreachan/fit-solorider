@@ -316,7 +316,6 @@
 
 			for (const [field, value] of newSeries) {
 				const shiftedValue = calculateShiftedSeries(value);
-				console.log({value, shiftedValue});
 				drawChart(field, shiftedValue);
 				drawTables(field, value);
 			}
