@@ -8,17 +8,26 @@
 		TableHeadCell,
 		Badge,
 		Checkbox,
+		Label
 	} from 'flowbite-svelte';
 
 	/**
 	 * @type {{ [s: number]: any; } | ArrayLike<number>}
 	 */
-	 export let tableData = [];
+	export let tableData = [];
+
+	/**
+	 * @type {function|null}
+	 */
+	export let selectedRowHandler = null;
 </script>
 
 <div class="table-wrapper">
 	<Table hoverable={true}>
 		<TableHead>
+			{#if typeof selectedRowHandler === 'function'}
+				<TableHeadCell />
+			{/if}
 			{#each Object.keys(tableData[0]) as columnHeading}
 				<TableHeadCell>{columnHeading}</TableHeadCell>
 			{/each}
@@ -26,12 +35,23 @@
 		<TableBody>
 			{#each Object.values(tableData) as row}
 				<TableBodyRow>
+					{#if typeof selectedRowHandler === 'function'}
+						<TableBodyCell class="m-2 !p-2">
+							<Checkbox
+								id={row.Source.value}
+								value={row.Source.value}
+								on:change={selectedRowHandler}
+							/>
+						</TableBodyCell>
+					{/if}
 					{#each Object.values(row) as cell}
 						<TableBodyCell>
-							{cell.value === null ? '-' : (cell.value + cell.units)}
-							{#if cell.diff != 0}
-								<Badge color={cell['diff'] > 0 ? 'red' : 'blue'}>{cell.diff}%</Badge>
-							{/if}
+							<Label for={typeof selectedRowHandler === 'function' ? row.Source.value : null}>
+								{cell.value === null ? '-' : cell.value + cell.units}
+								{#if cell.diff != 0}
+									<Badge color={cell['diff'] > 0 ? 'red' : 'blue'}>{cell.diff}%</Badge>
+								{/if}
+							</Label>
 						</TableBodyCell>
 					{/each}
 				</TableBodyRow>

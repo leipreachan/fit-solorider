@@ -379,6 +379,7 @@
 			{#if $moreData[key]?.length > 0}
 				<Table
 					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}
+					selectedRowHandler={key === 'power'? (event)=>{console.log(event.target.value)}: null}
 				/>
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>
