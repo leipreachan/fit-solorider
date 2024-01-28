@@ -5,7 +5,6 @@
 	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
-	import type { Checkbox } from 'flowbite-svelte';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
@@ -355,27 +354,10 @@
 		chart.redraw();
 	}
 
-	function updateShift(shift: number) {
+	const handleShiftChange = (shift: number) => {
 		syncShift = shift;
-	}
-
-	/**
-	 * @param {Event | null | undefined} event
-	 */
-	function handleOnMinutesChange(event: Event | null | undefined) {
-		const target = event?.target as HTMLInputElement;
-		updateShift(parseInt(target.value) * 60 * 1000);
 		shiftAllSeries(true);
-	}
-
-	/**
-	 * @param {Event | null | undefined} event
-	 */
-	function handleOnRangeChange(event: Event | null | undefined) {
-		const target = event?.target as HTMLInputElement;
-		updateShift(parseInt(target.value) * 1000);
-		shiftAllSeries(true);
-	}
+	};
 
 	function selectedRowHandler(event: Event | null | undefined) {
 		const target = (event?.target as HTMLSelectElement).value || null;
@@ -401,7 +383,7 @@
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
-			<Shifter {...{ minRange, maxRange, handleOnRangeChange, handleOnMinutesChange }} />
+			<Shifter {...{ minRange, maxRange, handleShiftChange }} />
 		{/if}
 	{/each}
 </div>
