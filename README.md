@@ -1,4 +1,11 @@
-# create-svelte
+# fit.solorider.cc
+
+It's my hobby project to try svelte and sveltekit.
+
+A simple tool allowing you to compare several fit files
+
+
+## create-svelte
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
 
