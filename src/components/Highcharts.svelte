@@ -334,16 +334,15 @@
 	}
 
 	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
-		const result = [];
-		for (let id = 0; id < value.length; id++) {
-			const data = value[id].data;
-			const name = value[id].name;
+		let id = 0;
+		const result = value.map(({name, data}) => {
 			let shift = metricsDataShift[id];
 			if (selectedOnly) {
 				shift = selectedRows.has(name) ? metricsDataShift[id] + syncShift : metricsDataShift[id];
 			}
-			result.push({ name, data: data.map((x) => [x[0] + shift, x[1]]) });
-		}
+			id++;
+			return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
+		});
 		return result;
 	}
 
@@ -393,6 +392,6 @@
 
 <style>
 	.chart_wrapper {
-		@apply mb-10;
+		@apply mt-10;
 	}
 </style>
