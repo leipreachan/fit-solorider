@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import {
 		Table,
 		TableBody,
@@ -11,35 +11,27 @@
 		Label
 	} from 'flowbite-svelte';
 
-	/**
-	 * @type {{ [s: number]: any; } | ArrayLike<number>}
-	 */
-	export let tableData = [];
-
-	/**
-	 * @type {function|null}
-	 */
-	export let selectedRowHandler = null;
-	let showLabel = typeof selectedRowHandler === 'function';
+	export let tableData: any[] = [];
+	export let selectedRowHandler: any = null;
+	$: showLabel = typeof selectedRowHandler === 'function';
+	$: showCheckbox = showLabel && tableData.length > 1;
 </script>
 
 <div class="table-wrapper">
 	<Table hoverable={true}>
 		<TableHead>
-			{#if showLabel}
-				<TableHeadCell class="p-2" />
+			{#if showCheckbox}
+				<TableHeadCell class="px-4" />
 			{/if}
 			{#each Object.keys(tableData[0]) as columnHeading, i}
-				<TableHeadCell class={i === 0 && typeof selectedRowHandler === 'function' ? 'px-0' : 'px-6'}
-					>{columnHeading}</TableHeadCell
-				>
+				<TableHeadCell class={i === 0 && showCheckbox ? 'px-0' : 'px-6'}>{columnHeading}</TableHeadCell>
 			{/each}
 		</TableHead>
 		<TableBody>
 			{#each Object.values(tableData) as row}
 				<TableBodyRow>
-					{#if typeof selectedRowHandler === 'function'}
-						<TableBodyCell class="m-2 p-2">
+					{#if showCheckbox}
+						<TableBodyCell class="px-4">
 							<Checkbox
 								id={row.Source.value}
 								value={row.Source.value}
@@ -48,9 +40,7 @@
 						</TableBodyCell>
 					{/if}
 					{#each Object.values(row) as cell, i}
-						<TableBodyCell
-							class={i === 0 && typeof selectedRowHandler === 'function' ? 'px-0' : 'px-6'}
-						>
+						<TableBodyCell class={i === 0 && showCheckbox ? 'px-0' : 'px-6'}>
 							<Label
 								class={showLabel ? 'cursor-pointer' : null}
 								for={showLabel ? row.Source.value : null}
