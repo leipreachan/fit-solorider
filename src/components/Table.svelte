@@ -27,17 +27,19 @@
 	<Table hoverable={true}>
 		<TableHead>
 			{#if showLabel}
-				<TableHeadCell />
+				<TableHeadCell class="p-2" />
 			{/if}
-			{#each Object.keys(tableData[0]) as columnHeading}
-				<TableHeadCell>{columnHeading}</TableHeadCell>
+			{#each Object.keys(tableData[0]) as columnHeading, i}
+				<TableHeadCell class={i === 0 && typeof selectedRowHandler === 'function' ? 'px-0' : 'px-6'}
+					>{columnHeading}</TableHeadCell
+				>
 			{/each}
 		</TableHead>
 		<TableBody>
 			{#each Object.values(tableData) as row}
 				<TableBodyRow>
 					{#if typeof selectedRowHandler === 'function'}
-						<TableBodyCell class="m-2 !p-2">
+						<TableBodyCell class="m-2 p-2">
 							<Checkbox
 								id={row.Source.value}
 								value={row.Source.value}
@@ -45,12 +47,20 @@
 							/>
 						</TableBodyCell>
 					{/if}
-					{#each Object.values(row) as cell}
-						<TableBodyCell>
-							<Label class={showLabel ? "cursor-pointer" : null} for={showLabel ? row.Source.value : null}>
+					{#each Object.values(row) as cell, i}
+						<TableBodyCell
+							class={i === 0 && typeof selectedRowHandler === 'function' ? 'px-0' : 'px-6'}
+						>
+							<Label
+								class={showLabel ? 'cursor-pointer' : null}
+								for={showLabel ? row.Source.value : null}
+							>
 								{cell.value === null ? '-' : cell.value + cell.units}
 								{#if cell.diff != 0}
-									<Badge color={cell['diff'] > 0 ? 'red' : 'blue'} title={"compared to the first row"}>{cell.diff}%</Badge>
+									<Badge
+										color={cell['diff'] > 0 ? 'red' : 'blue'}
+										title={'compared to the first row'}>{cell.diff}%</Badge
+									>
 								{/if}
 							</Label>
 						</TableBodyCell>
@@ -62,10 +72,6 @@
 </div>
 
 <style>
-	.label {
-		@apply cursor-pointer;
-	}
-
 	.table-wrapper {
 		@apply flex justify-center;
 	}
