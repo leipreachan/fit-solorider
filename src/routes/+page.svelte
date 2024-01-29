@@ -22,7 +22,7 @@
 	<Tracker />
 </svelte:head>
 
-<main>
+<main class="w-screen">
 	<Topbar {description} bind:metricsData bind:metricsDataShift/>
 	{#if metricsData.length > 0}
 		<Highcharts {metricsData} {metricsDataShift} />

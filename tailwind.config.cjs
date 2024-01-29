@@ -2,16 +2,12 @@ const config = {
 	content: ['./src/**/*.{html,js,svelte,ts}', './node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}'],
 
 	plugins: [
-		require('flowbite/plugin'),
-		require('tailwindcss-debug-screens')
+		require('flowbite/plugin')
 	],
 
 	darkMode: 'class',
 
 	theme: {
-		debugScreens: {
-			position: ['bottom', 'left'],
-		  },
 		screens: {
 			'xs': {'max': '640px'},
 			'sm': {'min': '640px', 'max': '767px'},
