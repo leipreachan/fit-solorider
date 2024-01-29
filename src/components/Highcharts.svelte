@@ -12,6 +12,8 @@
 	export let metricsData: any[] = [];
 	export let metricsDataShift: any[] = [];
 
+	let disabled = true;
+
 	const newSeries = new Map();
 	const minRange = -65;
 	const maxRange = 65;
@@ -366,6 +368,7 @@
 		} else {
 			selectedRows.add(target);
 		}
+		disabled = selectedRows.size === 0;
 	}
 </script>
 
@@ -383,7 +386,7 @@
 			{/if}
 		</div>
 		{#if key === 'power' && $moreData[key]?.length > 1}
-			<Shifter {...{ minRange, maxRange, handleShiftChange }} />
+			<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
 		{/if}
 	{/each}
 </div>

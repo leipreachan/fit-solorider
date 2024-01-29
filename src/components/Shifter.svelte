@@ -4,6 +4,7 @@
 	export let minRange: number;
 	export let maxRange: number;
 	export let handleShiftChange: any;
+	export let disabled: boolean;
 
 	let seconds = 0;
 	let minutes = 0;
@@ -23,7 +24,7 @@
 </script>
 
 <div class="mb-10">
-	<div class="mb-4 flex flex flex-col items-center">
+	<div class="mb-4 flex flex-col items-center">
 		<div class="mb-3">Shift selected chart(s) by:</div>
 		<div class="relative mb-6 w-1/2">
 			<Range
@@ -32,6 +33,7 @@
 				max={maxRange}
 				bind:value={seconds}
 				on:change={handleChange}
+				{disabled}
 			/>
 			{#each rangeTicks as tick}
 				<span class="tick {tick.style}">
@@ -48,6 +50,7 @@
 			maxlength="2"
 			bind:value={minutes}
 			on:change={handleChange}
+			{disabled}
 		/>
 		<label for="minutes_shift">minutes</label>
 		<Input
@@ -57,6 +60,7 @@
 			maxlength="3"
 			bind:value={seconds}
 			on:change={handleChange}
+			{disabled}
 		/>
 		<label for="seconds_shift">seconds</label>
 	</div>
