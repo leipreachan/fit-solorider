@@ -25,7 +25,9 @@
 
 <div class="mb-10">
 	<div class="mb-4 flex flex-col items-center">
-		<div class="mb-3">Shift selected chart(s) by:</div>
+		<div class="mb-3">
+			{disabled ? 'Select a file in the table below to use this tool' : 'Shift selected charts'}
+		</div>
 		<div class="relative mb-6 w-1/2">
 			<Range
 				id="range"
