@@ -5,6 +5,7 @@
 	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
+	import { _ } from 'svelte-i18n';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
@@ -86,16 +87,16 @@
 	const chartSeriesNames = new Map();
 
 	const priority = new Map([
-		['power', { units: ' watts' }],
-		['cadence', { units: ' rpm' }],
-		['heart_rate', { units: ' bpm' }],
-		['altitude', { units: 'meters', shortUnits: ' m', type: 'area' }],
-		['temperature', { units: 'degrees', shortUnits: '°' }]
+		['power', { units: ' ' + $_('watts') }],
+		['cadence', { units: ' ' + $_('rpm') }],
+		['heart_rate', { units: ' ' + $_('bpm') }],
+		['altitude', { units: $_('meters'), shortUnits: $_('m_meters'), type: 'area' }],
+		['temperature', { units: $_('degrees'), shortUnits: '°' }]
 	]);
 
 	const initChart = (metricName: string, series: any | null = null) => {
 		if (!charts.has(metricName)) {
-			options.title.text = metricName.replace('_', ' ');
+			options.title.text = $_(metricName);
 			options.yAxis.title.text = priority.get(metricName)?.units || '';
 			options.chart.type = priority.get(metricName)?.type || 'line';
 			if (series !== null) {
@@ -232,13 +233,13 @@
 		const units = priority.get(metricName)?.shortUnits || priority.get(metricName)?.units || '';
 		for (let [k, cb] of Object.entries(fields)) {
 			const value = cb(data);
-			const mName = `${k} ${metricName}`;
+			// const mName = $_(k.toLowerCase()) + ' ' + $_(metricName);
 			let diff = 0;
-			const frm = Object.entries(firstRow[mName] || {});
-			if (frm.length > 0 && firstRow[mName].value !== null && value !== null) {
-				diff = percDiff(firstRow[mName].value, value);
+			const frm = Object.entries(firstRow[k] || {});
+			if (frm.length > 0 && firstRow[k].value !== null && value !== null) {
+				diff = percDiff(firstRow[k].value, value);
 			}
-			result[mName] = { value, diff, units };
+			result[k] = { value, diff, units };
 		}
 		return result;
 	};
@@ -335,7 +336,7 @@
 
 	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
 		let id = 0;
-		const result = value.map(({name, data}) => {
+		const result = value.map(({ name, data }) => {
 			let shift = metricsDataShift[id];
 			if (selectedOnly) {
 				shift = selectedRows.has(name) ? metricsDataShift[id] + syncShift : metricsDataShift[id];
@@ -379,6 +380,7 @@
 				<Table
 					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}
 					selectedRowHandler={key === 'power' ? selectedRowHandler : null}
+					metric={key}
 				/>
 			{:else}
 				<center>No {key} data found in one of the uploaded files</center>

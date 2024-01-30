@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Input, Range } from 'flowbite-svelte';
+	import { _ } from 'svelte-i18n';
 
 	export let minRange: number;
 	export let maxRange: number;
@@ -26,7 +27,7 @@
 <div class="my-5">
 	<div class="mb-4 flex flex-col items-center">
 		<div class="mb-3">
-			{disabled ? 'Select a file in the table below to use this tool' : 'Shift selected charts'}
+			{disabled ? $_('select_file') : $_('select_file')}
 		</div>
 		<div class="relative mb-6 w-1/2">
 			<Range
@@ -39,7 +40,7 @@
 			/>
 			{#each rangeTicks as tick}
 				<span class="tick {tick.style}">
-					{tick.value}s
+					{tick.value}{$_('s_seconds')}
 				</span>
 			{/each}
 		</div>
@@ -54,7 +55,7 @@
 			on:change={handleChange}
 			{disabled}
 		/>
-		<label for="minutes_shift">minutes</label>
+		<label for="minutes_shift">{$_('minutes')}</label>
 		<Input
 			id="seconds_shift"
 			type="number"
@@ -64,7 +65,7 @@
 			on:change={handleChange}
 			{disabled}
 		/>
-		<label for="seconds_shift">seconds</label>
+		<label for="seconds_shift">{$_('seconds')}</label>
 	</div>
 </div>
 
