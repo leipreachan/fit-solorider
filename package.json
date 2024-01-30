@@ -39,6 +39,7 @@
 		"flowbite": "^2.2.1",
 		"flowbite-svelte": "^0.44.22",
 		"highcharts": "^11.2.0",
+		"svelte-i18n": "^4.0.0",
 		"svelte-meta-tags": "^3.1.0"
 	}
 }

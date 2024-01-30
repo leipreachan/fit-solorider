@@ -5,25 +5,20 @@
 	import Tracker from '../components/Tracker.svelte';
 	import SupportMe from '../components/SupportMe.svelte';
 	import Topbar from '../components/Topbar.svelte';
+	import { _ } from 'svelte-i18n';
 
 	let metricsData: any[] = [];
 	let metricsDataShift: any[] = [];
-
-	const titleTemplate = 'Simple FIT file analyser';
-	const description =
-		"Compare FIT files data - power, cadence, HR. The app doesn't store anything and works in your browser, no strings attached.";
-
-
 </script>
 
-<MyMeta {titleTemplate} {description} />
+<MyMeta titleTemplate={$_('page_title')} description={$_('description')} />
 <svelte:head>
-	<title>{titleTemplate}</title>
+	<title>{$_('page_title')}</title>
 	<Tracker />
 </svelte:head>
 
 <main class="w-screen">
-	<Topbar {description} bind:metricsData bind:metricsDataShift/>
+	<Topbar description={$_('description')} bind:metricsData bind:metricsDataShift />
 	{#if metricsData.length > 0}
 		<Highcharts {metricsData} {metricsDataShift} />
 	{/if}
