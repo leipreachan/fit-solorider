@@ -6,10 +6,10 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Badge,
 		Checkbox,
 		Label
 	} from 'flowbite-svelte';
+	import CellBadge from './CellBadge.svelte';
 
 	export let tableData: any[] = [];
 	export let selectedRowHandler: any = null;
@@ -45,13 +45,7 @@
 								class={showLabel ? 'cursor-pointer' : null}
 								for={showLabel ? row.Source.value : null}
 							>
-								{cell.value === null ? '-' : cell.value + cell.units}
-								{#if cell.diff != 0}
-									<Badge
-										color={cell['diff'] > 0 ? 'red' : 'blue'}
-										title={'compared to the first row'}>{cell.diff}%</Badge
-									>
-								{/if}
+								<CellBadge {...cell} />
 							</Label>
 						</TableBodyCell>
 					{/each}
