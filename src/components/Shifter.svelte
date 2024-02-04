@@ -69,8 +69,8 @@
 	</div>
 </div>
 
-<style>
+<style lang="postcss">
 	.tick {
-		@apply absolute -bottom-6 text-sm text-gray-500 dark:text-gray-400;
+		@apply absolute -bottom-6 text-sm;
 	}
 </style>

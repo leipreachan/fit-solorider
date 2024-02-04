@@ -12,6 +12,7 @@
 
 	export let metricsData: any[] = [];
 	export let metricsDataShift: any[] = [];
+	export let theme = 'light';
 
 	let disabled = true;
 
@@ -326,6 +327,7 @@
 
 			getMetricNames(metricsData);
 		}
+		renderCharts();
 	});
 
 	function shiftAllSeries(selectedOnly: boolean) {
@@ -361,7 +363,7 @@
 		shiftAllSeries(true);
 	};
 
-	function selectedRowHandler(event: Event | null | undefined) {
+	const selectedRowHandler = (event: Event | null | undefined) => {
 		const target = (event?.target as HTMLSelectElement).value || null;
 		if (selectedRows.has(target)) {
 			selectedRows.delete(target);
@@ -369,13 +371,61 @@
 			selectedRows.add(target);
 		}
 		disabled = selectedRows.size === 0;
+	};
+
+	function renderCharts() {
+		charts.forEach((chart) => {
+			const updatedOptions = getUpdatedOptions(chart.options);
+			chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
+		});
+	}
+
+	function getUpdatedOptions(options) {
+		const textColor = theme === 'dark' ? '#c5c9cf' : '#000000';
+		const themeOptions = {
+			chart: {
+				backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+				style: {
+					color: theme === 'dark' ? '#c5c9cf' : '#ffffff'
+				}
+				// Add more theme options as needed
+			},
+			legend: {
+				itemStyle: {
+					color: textColor
+				}
+			},
+			title: {
+				style: {
+					color: textColor
+				}
+			},
+			xAxis: {
+				labels: {
+					style: {
+						color: textColor
+					}
+				}
+			},
+			yAxis: {
+				labels: {
+					style: {
+						color: textColor
+					}
+				}
+			}
+		};
+		return {
+			...options,
+			...themeOptions
+		};
 	}
 </script>
 
 <div id="container_wrapper">
 	{#each priority.keys() as key}
 		<div class="chart_wrapper">
-			<div id={containerName + key}></div>
+			<div id={containerName + key} class="chart_container"></div>
 			{#if $moreData[key]?.length > 0}
 				<Table
 					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}

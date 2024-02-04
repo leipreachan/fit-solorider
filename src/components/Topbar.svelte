@@ -134,7 +134,7 @@
 		multiple
 		on:change={handleFileUpload}
 		accept=".fit"
-		class="inline-block w-1/4 xs:w-6/12"
+		class="inline-block w-1/4 xs:w-5/12"
 	/>
 	{#if metricsData.length > 1}
 		<Select
