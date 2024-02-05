@@ -6,12 +6,10 @@
 	import Table from './Table.svelte';
 	import { _ } from 'svelte-i18n';
 	import { theme } from '../stores/theme';
+	import { metricsData, metricsDataShift } from '../stores/data';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
-
-	export let metricsData: any[] = [];
-	export let metricsDataShift: any[] = [];
 
 	let disabled = true;
 
@@ -301,10 +299,10 @@
 
 	afterUpdate(() => {
 		// Update chart series when data changes
-		if (metricsData.length > 0) {
+		if ($metricsData.length > 0) {
 			const fields = [...priority.keys()];
 			for (let i = 0; i < fields.length; i++) {
-				const values = metricsData.map((fit) => ({
+				const values = $metricsData.map((fit) => ({
 					name: fit.name,
 					data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
 						Date.parse(x.timestamp),
@@ -320,7 +318,7 @@
 				drawTables(field, value);
 			}
 
-			getMetricNames(metricsData);
+			getMetricNames($metricsData);
 		}
 		renderCharts();
 	});
@@ -334,9 +332,9 @@
 	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
 		let id = 0;
 		const result = value.map(({ name, data }) => {
-			let shift = metricsDataShift[id];
+			let shift = $metricsDataShift[id];
 			if (selectedOnly) {
-				shift = selectedRows.has(name) ? metricsDataShift[id] + syncShift : metricsDataShift[id];
+				shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
 			}
 			id++;
 			return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
@@ -418,7 +416,7 @@
 </script>
 
 <div id="container_wrapper">
-	{#if metricsData.length > 0}
+	{#if $metricsData.length > 0}
 		{#each priority.keys() as key}
 			<div class="chart_wrapper">
 				<div id={containerName + key} class="chart_container"></div>

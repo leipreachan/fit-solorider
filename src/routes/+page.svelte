@@ -7,9 +7,6 @@
 	import Topbar from '../components/Topbar.svelte';
 	import DarkMode from '../components/DarkMode.svelte';
 	import { _ } from 'svelte-i18n';
-
-	let metricsData: any[] = [];
-	let metricsDataShift: any[] = [];
 </script>
 
 <MyMeta titleTemplate={$_('page_title')} description={$_('description')} />
@@ -19,8 +16,8 @@
 </svelte:head>
 
 <main class="w-screen">
-	<Topbar description={$_('description')} bind:metricsData bind:metricsDataShift />
+	<Topbar description={$_('description')}/>
 	<DarkMode/>
 	<SupportMe />
-	<Highcharts {metricsData} {metricsDataShift} />
+	<Highcharts/>
 </main>
