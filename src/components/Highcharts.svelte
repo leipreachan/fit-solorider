@@ -2,7 +2,6 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	import Highcharts from 'highcharts';
-	import { writable } from 'svelte/store';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
 	import { _ } from 'svelte-i18n';
@@ -22,7 +21,7 @@
 	let metricNames = new Set();
 
 	let syncShift = 0;
-	let moreData: any = [];
+	let tableData: any = [];
 	const selectedRows = new Set();
 
 	function logExtremes(event: Event) {
@@ -284,19 +283,16 @@
 	}
 
 	async function drawTables(field: string, value: any[]) {
-		const current: any = moreData;
-		let tableData = current[field] || [];
-		const firstRow = tableData[0] || {};
-		const sources = new Set(tableData.length > 0 ? tableData.map((x) => x.Source.value) : []);
-		tableData = value
+		let newData = tableData[field] || [];
+		const firstRow = newData[0] || {};
+		const sources = new Set(newData.length > 0 ? newData.map((x) => x.Source.value) : []);
+		tableData[field] = value
 			.filter((x) => !sources.has(x.name))
 			.reduce((accum, { name, data }) => {
 				const rawData = data.map((x: any[]) => x[1]);
 				const td = prepareTableData(field, name, rawData, firstRow);
 				return [...accum, td];
-			}, tableData);
-		current[field] = tableData;
-		moreData = current;
+			}, newData);
 	}
 
 	async function getMetricNames(data: any[]) {
@@ -425,9 +421,9 @@
 	{#each priority.keys() as key}
 		<div class="chart_wrapper">
 			<div id={containerName + key} class="chart_container"></div>
-			{#if moreData[key]?.length > 0}
+			{#if tableData[key]?.length > 0}
 				<Table
-					tableData={moreData[key]}
+					tableData={tableData[key]}
 					selectedRowHandler={key === 'power' ? selectedRowHandler : null}
 					metric={key}
 				/>
@@ -435,13 +431,13 @@
 				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
 		</div>
-		{#if key === 'power' && moreData[key]?.length > 1}
+		{#if key === 'power' && tableData[key]?.length > 1}
 			<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
 		{/if}
 	{/each}
 </div>
 
-<style>
+<style lang="postcss">
 	.chart_wrapper {
 		@apply mt-10;
 	}
