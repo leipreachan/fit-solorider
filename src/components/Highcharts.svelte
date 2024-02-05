@@ -299,6 +299,7 @@
 
 	afterUpdate(() => {
 		// Update chart series when data changes
+		console.log($metricsData)
 		if ($metricsData.length > 0) {
 			const fields = [...priority.keys()];
 			for (let i = 0; i < fields.length; i++) {
@@ -319,8 +320,10 @@
 			}
 
 			getMetricNames($metricsData);
+			renderCharts();
+		} else {
+			destroyCharts();
 		}
-		renderCharts();
 	});
 
 	function shiftAllSeries(selectedOnly: boolean) {
@@ -371,6 +374,11 @@
 			const updatedOptions = getUpdatedOptions(chart.options);
 			chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
 		});
+	}
+
+	function destroyCharts() {
+		charts.clear();
+		chartSeriesNames.clear();
 	}
 
 	function getUpdatedOptions(options: any) {

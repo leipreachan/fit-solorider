@@ -74,7 +74,7 @@
 	);
 
 	const alignNone = () => {
-		metricsDataShift.set($metricsDataShift.map(() => 0));
+		return $metricsDataShift.map(() => 0);
 	};
 
 	const alignByStart = () => {
@@ -83,7 +83,7 @@
 		for (let i = 1; i < $metricsDataShift.length; i++) {
 			temp[i] = start - $metricsData[i].data[0].timestamp;
 		}
-		metricsDataShift.set(temp);
+		return temp;
 	};
 
 	const alignByEnd = () => {
@@ -94,7 +94,7 @@
 			const lastIndex = data.length - 1;
 			temp[i] = last - Date.parse(data[lastIndex].timestamp);
 		}
-		metricsDataShift.set(temp);
+		return temp;
 	};
 
 	const alignOneAfterAnother = () => {
@@ -107,7 +107,7 @@
 				Date.parse($metricsData[i].data[0].timestamp) +
 				temp[i - 1];
 		}
-		metricsDataShift.set(temp);
+		return temp;
 	};
 
 	const optionFunctions = { alignNone, alignByStart, alignByEnd, alignOneAfterAnother };
@@ -121,7 +121,7 @@
 	const alignActivities = () => {
 		const selectedFunction = optionFunctions[$alignMethod];
 		if (selectedFunction) {
-			selectedFunction();
+			metricsDataShift.set(selectedFunction());
 		}
 	};
 </script>
