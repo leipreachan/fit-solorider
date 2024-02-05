@@ -22,8 +22,7 @@
 	let metricNames = new Set();
 
 	let syncShift = 0;
-	let moreData: any = writable({});
-	let extraData: any = writable({});
+	let moreData: any = [];
 	const selectedRows = new Set();
 
 	function logExtremes(event: Event) {
@@ -285,7 +284,7 @@
 	}
 
 	async function drawTables(field: string, value: any[]) {
-		const current: any = $moreData;
+		const current: any = moreData;
 		let tableData = current[field] || [];
 		const firstRow = tableData[0] || {};
 		const sources = new Set(tableData.length > 0 ? tableData.map((x) => x.Source.value) : []);
@@ -297,7 +296,7 @@
 				return [...accum, td];
 			}, tableData);
 		current[field] = tableData;
-		moreData.set(current);
+		moreData = current;
 	}
 
 	async function getMetricNames(data: any[]) {
@@ -426,9 +425,9 @@
 	{#each priority.keys() as key}
 		<div class="chart_wrapper">
 			<div id={containerName + key} class="chart_container"></div>
-			{#if $moreData[key]?.length > 0}
+			{#if moreData[key]?.length > 0}
 				<Table
-					tableData={[...$moreData[key], ...($extraData[key]?.length > 0 ? $extraData[key] : [])]}
+					tableData={moreData[key]}
 					selectedRowHandler={key === 'power' ? selectedRowHandler : null}
 					metric={key}
 				/>
@@ -436,7 +435,7 @@
 				<center>No {key} data found in one of the uploaded files</center>
 			{/if}
 		</div>
-		{#if key === 'power' && $moreData[key]?.length > 1}
+		{#if key === 'power' && moreData[key]?.length > 1}
 			<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
 		{/if}
 	{/each}
