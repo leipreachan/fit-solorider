@@ -6,13 +6,13 @@
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
 	import { _ } from 'svelte-i18n';
+	import { theme } from '../stores/theme';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
 
 	export let metricsData: any[] = [];
 	export let metricsDataShift: any[] = [];
-	export let theme = 'light';
 
 	let disabled = true;
 
@@ -380,13 +380,13 @@
 		});
 	}
 
-	function getUpdatedOptions(options) {
-		const textColor = theme === 'dark' ? '#c5c9cf' : '#000000';
+	function getUpdatedOptions(options: any) {
+		const textColor = $theme === 'dark' ? '#c5c9cf' : '#000000';
 		const themeOptions = {
 			chart: {
-				backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+				backgroundColor: $theme === 'dark' ? '#1f2937' : '#ffffff',
 				style: {
-					color: theme === 'dark' ? '#c5c9cf' : '#ffffff'
+					color: $theme === 'dark' ? '#c5c9cf' : '#ffffff'
 				}
 				// Add more theme options as needed
 			},

@@ -125,7 +125,7 @@
 	};
 </script>
 
-<div class="px-2 py-2 xs:flex xs:flex-wrap">
+<div class="px-2 py-2 xs:flex xs:flex-wrap w-11/12">
 	{#if metricsData.length === 0}
 		<Header {description} />
 	{/if}

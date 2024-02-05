@@ -6,16 +6,10 @@
 	import SupportMe from '../components/SupportMe.svelte';
 	import Topbar from '../components/Topbar.svelte';
 	import { _ } from 'svelte-i18n';
-	import { DarkMode } from 'flowbite-svelte';
+	import DarkMode from '../components/DarkMode.svelte';
 
 	let metricsData: any[] = [];
 	let metricsDataShift: any[] = [];
-
-	let theme = 'light';
-	function toggleTheme() {
-		console.log(theme);
-		theme = theme === 'light' ? 'dark' : 'light';
-	}
 </script>
 
 <MyMeta titleTemplate={$_('page_title')} description={$_('description')} />
@@ -26,19 +20,11 @@
 
 <main class="w-screen">
 	<Topbar description={$_('description')} bind:metricsData bind:metricsDataShift />
-	<button type="button" on:click={toggleTheme} class="darkmode">
-		<DarkMode />
-	</button>
+	<DarkMode/>
 
 	{#if metricsData.length > 0}
-		<Highcharts {metricsData} {metricsDataShift} {theme} />
+		<Highcharts {metricsData} {metricsDataShift} />
 	{/if}
 
 	<SupportMe />
 </main>
-
-<style lang="postcss">
-	.darkmode {
-		@apply absolute right-2 top-2 xs:w-1/12;
-	}
-</style>
