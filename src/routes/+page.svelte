@@ -5,8 +5,8 @@
 	import Tracker from '../components/Tracker.svelte';
 	import SupportMe from '../components/SupportMe.svelte';
 	import Topbar from '../components/Topbar.svelte';
-	import { _ } from 'svelte-i18n';
 	import DarkMode from '../components/DarkMode.svelte';
+	import { _ } from 'svelte-i18n';
 
 	let metricsData: any[] = [];
 	let metricsDataShift: any[] = [];
@@ -21,10 +21,6 @@
 <main class="w-screen">
 	<Topbar description={$_('description')} bind:metricsData bind:metricsDataShift />
 	<DarkMode/>
-
-	{#if metricsData.length > 0}
-		<Highcharts {metricsData} {metricsDataShift} />
-	{/if}
-
 	<SupportMe />
+	<Highcharts {metricsData} {metricsDataShift} />
 </main>

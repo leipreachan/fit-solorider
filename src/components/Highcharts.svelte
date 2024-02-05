@@ -418,23 +418,25 @@
 </script>
 
 <div id="container_wrapper">
-	{#each priority.keys() as key}
-		<div class="chart_wrapper">
-			<div id={containerName + key} class="chart_container"></div>
-			{#if tableData[key]?.length > 0}
-				<Table
-					tableData={tableData[key]}
-					selectedRowHandler={key === 'power' ? selectedRowHandler : null}
-					metric={key}
-				/>
-			{:else}
-				<center>No {key} data found in one of the uploaded files</center>
+	{#if metricsData.length > 0}
+		{#each priority.keys() as key}
+			<div class="chart_wrapper">
+				<div id={containerName + key} class="chart_container"></div>
+				{#if tableData[key]?.length > 0}
+					<Table
+						tableData={tableData[key]}
+						selectedRowHandler={key === 'power' ? selectedRowHandler : null}
+						metric={key}
+					/>
+				{:else}
+					<center>No {key} data found in one of the uploaded files</center>
+				{/if}
+			</div>
+			{#if key === 'power' && tableData[key]?.length > 1}
+				<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
 			{/if}
-		</div>
-		{#if key === 'power' && tableData[key]?.length > 1}
-			<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
-		{/if}
-	{/each}
+		{/each}
+	{/if}
 </div>
 
 <style lang="postcss">
