@@ -29,6 +29,7 @@
 		// 	);
 		// 	const field = event.target.chart.container.parentNode.id.replace(containerName, '');
 		// 	selectedBits.forEach((v, k) => {
+		// 		console.log({field, k, v});
 		// 		prepareTableData(field, k, v);
 		// 	});
 		// }
@@ -298,11 +299,11 @@
 
 	async function drawTables(field: string, value: any[]) {
 		let newData = tableData[field] || [];
-		const firstRow = newData[0] || {};
 		const sources = new Set(newData.length > 0 ? newData.map((x) => x.Source.value) : []);
 		tableData[field] = value
 			.filter((x) => !sources.has(x.name))
 			.reduce((accum, { name, data }) => {
+				const firstRow = accum[0] || {};
 				const rawData = data.map((x: any[]) => x[1]);
 				const td = prepareTableData(field, name, rawData, firstRow);
 				return [...accum, td];
