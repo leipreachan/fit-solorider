@@ -166,7 +166,7 @@
 			fourthPowerValues.reduce((sum, value) => sum + value, 0) / fourthPowerValues.length;
 
 		// Step 4: Find the fourth root of the resulting average
-		return Math.round(Math.pow(averageFourthPower, 1 / 4));
+		return Math.round(Math.pow(averageFourthPower, 1 / 4)) || null;
 	};
 
 	const calculateAverage = (data: any[]) => {
