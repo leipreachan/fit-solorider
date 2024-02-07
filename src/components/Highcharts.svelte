@@ -252,13 +252,10 @@
 		switch (field) {
 			case 'power':
 				return addPowerData(sourceName, rawData, firstRow);
-				break;
 			case 'temperature':
 				return addTemperatureData(sourceName, rawData, firstRow);
-				break;
 			case 'altitude':
 				return addAltitudeData(sourceName, rawData, firstRow);
-				break;
 			default:
 				return addAvgMaxData(sourceName, field, rawData, firstRow);
 		}
@@ -379,6 +376,9 @@
 	function destroyCharts() {
 		charts.clear();
 		chartSeriesNames.clear();
+		newSeries.clear();
+		metricNames.clear();
+		selectedRows.clear();
 	}
 
 	function getUpdatedOptions(options: any) {
