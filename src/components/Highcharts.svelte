@@ -23,16 +23,22 @@
 	const selectedRows = new Set();
 
 	function logExtremes(event: Event) {
-		// if (event.userMin && event.userMax) {
-		// 	const selectedBits = event.target.chart.series.map((s) =>
-		// 		s.data.filter((v) => v.x >= event.userMin && v.x <= event.userMax)
-		// 	);
-		// 	const field = event.target.chart.container.parentNode.id.replace(containerName, '');
-		// 	selectedBits.forEach((v, k) => {
-		// 		console.log({field, k, v});
-		// 		prepareTableData(field, k, v);
-		// 	});
-		// }
+		const field = event.target.chart.container.parentNode.id.replace(containerName, '');
+		let newData = [];
+		if (event.userMin && event.userMax) {
+			newData = event.target.chart.series.map((s, k) => ({
+				name: event.target.chart.series[k].name,
+				data: s.data
+					.filter((v) => v.x >= event.userMin && v.x <= event.userMax)
+					.map(({ x, y }) => [x, y])
+			}));
+		} else {
+			newData = event.target.chart.series.map((s, k) => ({
+				name: event.target.chart.series[k].name,
+				data: s.data.map(({ x, y }) => [x, y])
+			}));
+		}
+		drawTables(field, newData, true);
 	}
 
 	const options = {
@@ -297,8 +303,8 @@
 		return chart;
 	}
 
-	async function drawTables(field: string, value: any[]) {
-		let newData = tableData[field] || [];
+	async function drawTables(field: string, value: any[], fullRedraw = false) {
+		let newData = fullRedraw ? [] : tableData[field] || [];
 		const sources = new Set(newData.length > 0 ? newData.map((x) => x.Source.value) : []);
 		tableData[field] = value
 			.filter((x) => !sources.has(x.name))
