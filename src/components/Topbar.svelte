@@ -81,7 +81,7 @@
 		const temp = [0];
 		const start = Date.parse($metricsData[0].data[0].timestamp);
 		for (let i = 1; i < $metricsDataShift.length; i++) {
-			temp[i] = start - $metricsData[i].data[0].timestamp;
+			temp[i] = start - Date.parse($metricsData[i].data[0].timestamp);
 		}
 		return temp;
 	};

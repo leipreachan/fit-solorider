@@ -296,7 +296,6 @@
 
 	afterUpdate(() => {
 		// Update chart series when data changes
-		console.log($metricsData)
 		if ($metricsData.length > 0) {
 			const fields = [...priority.keys()];
 			for (let i = 0; i < fields.length; i++) {
