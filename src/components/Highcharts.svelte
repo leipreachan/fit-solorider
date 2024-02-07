@@ -55,7 +55,26 @@
 			type: 'line'
 		},
 		tooltip: {
-			valueDecimals: 0
+			formatter: function () {
+				return (
+					'<b>' +
+					Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +
+					'</b><br/>' +
+					this.points.reduce((str, point) => {
+						return (
+							str +
+							'<span style="color:' +
+							point.series.color +
+							'">\u25CF</span> ' +
+							point.series.name +
+							': <b>' +
+							Math.round(point.y) +
+							'</b><br/>'
+						);
+					}, '')
+				);
+			},
+			shared: true // Enable shared tooltip
 		},
 		plotOptions: {
 			series: {
