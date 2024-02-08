@@ -16,8 +16,8 @@
 </svelte:head>
 
 <main class="w-screen">
-	<Topbar description={$_('description')}/>
-	<DarkMode/>
+	<Topbar description={$_('description')} />
+	<DarkMode />
+	<Highcharts />
 	<SupportMe />
-	<Highcharts/>
 </main>
