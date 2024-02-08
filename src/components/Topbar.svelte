@@ -2,15 +2,11 @@
 	import { Button, Fileupload, Select } from 'flowbite-svelte';
 	import Header from '../components/Header.svelte';
 	import FitParser from 'fit-file-parser';
-	import {metricsData, metricsDataShift, alignMethod} from '../stores/data';
+	import { metricsData, metricsDataShift, alignMethod } from '../stores/data';
 	import { _ } from 'svelte-i18n';
-
-	// let metricsData = $metricsData;
-	// let metricsDataShift = $metricsDataShift;
 
 	export let description = '';
 
-	let files: any[] = [];
 	const fileInputName = 'fileInput';
 	const fitFileConfig = {
 		force: true,
@@ -20,42 +16,41 @@
 
 	const handleFileUpload = (e: any) => {
 		const input = e.target;
-		files = Array.from(input?.files || []);
-		parseFitFiles();
+		const files = Array.from(input?.files || []);
+		const fitParser = new FitParser(fitFileConfig);
+		for (const file of files) {
+			if (file.type === 'application/vnd.ant.fit') {
+				parseFitFile(fitParser, file);
+			}
+		}
+		alignActivities();
 	};
 
-	const parseFitFiles = async () => {
-		for (const file of files) {
-			const arrayBuffer = await file.arrayBuffer();
-			const fitParser = new FitParser(fitFileConfig);
-
-			fitParser.parse(
-				arrayBuffer,
-				(
-					error: any,
-					data: {
-						devices: {
-							manufacturer: string;
-							product_name: any;
-						}[];
-						records: any;
-					}
-				) => {
-					if (error) {
-						console.error($_('error_parsing_fit'), error);
-						return;
-					}
-					// console.log(data);
-					const rideName =
-						(data?.devices[0]?.manufacturer || '') +
-						' ' +
-						(data?.devices[0]?.product_name || file.name);
-					metricsData.set([...$metricsData, { name: rideName, data: data.records }]);
-					metricsDataShift.set($metricsData.map(() => 0));
+	const parseFitFile = async (fitParser, file) => {
+		fitParser.parse(
+			await file.arrayBuffer(),
+			(
+				error: any,
+				data: {
+					devices: {
+						manufacturer: string;
+						product_name: any;
+					}[];
+					records: any;
 				}
-			);
-			alignActivities();
-		}
+			) => {
+				if (error) {
+					console.error($_('error_parsing_fit'), error);
+					return;
+				}
+				const rideName =
+					(data?.devices[0]?.manufacturer || '') +
+					' ' +
+					(data?.devices[0]?.product_name || file.name);
+				metricsData.set([...$metricsData, { name: rideName, data: data.records }]);
+				metricsDataShift.set($metricsData.map(() => 0));
+			}
+		);
 	};
 
 	const clear = () => {
@@ -126,7 +121,7 @@
 	};
 </script>
 
-<div class="px-2 py-2 xs:flex xs:flex-wrap w-11/12">
+<div class="w-11/12 px-2 py-2 xs:flex xs:flex-wrap">
 	{#if $metricsData.length === 0}
 		<Header {description} />
 	{/if}
