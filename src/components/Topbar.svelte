@@ -4,6 +4,11 @@
 	import FitParser from 'fit-file-parser';
 	import { metricsData, metricsDataShift, alignMethod } from '../stores/data';
 	import { _ } from 'svelte-i18n';
+	import {
+		BlobReader,
+		BlobWriter,
+		ZipReader,
+	} from '@zip.js/zip.js';
 
 	export let description = '';
 
@@ -13,20 +18,25 @@
 		speedUnit: 'km/h',
 		lengthUnit: 'm'
 	};
+	const fitParser = new FitParser(fitFileConfig);
 
 	const handleFileUpload = (e: any) => {
 		const input = e.target;
 		const files = Array.from(input?.files || []);
-		const fitParser = new FitParser(fitFileConfig);
 		for (const file of files) {
+			console.log(file);
 			if (file.type === 'application/vnd.ant.fit') {
-				parseFitFile(fitParser, file);
+				parseFitFile(file);
+			}
+			if (file.type === 'application/zip') {
+				parseZipFile(file);
 			}
 		}
 		alignActivities();
 	};
 
-	const parseFitFile = async (fitParser, file) => {
+	const parseFitFile = async (file) => {
+		const fileName = file.name;
 		fitParser.parse(
 			await file.arrayBuffer(),
 			(
@@ -40,17 +50,29 @@
 				}
 			) => {
 				if (error) {
-					console.error($_('error_parsing_fit'), error);
+					console.error($_('error_parsing_fit') + " " + fileName, error);
 					return;
 				}
 				const rideName =
 					(data?.devices[0]?.manufacturer || '') +
 					' ' +
-					(data?.devices[0]?.product_name || file.name);
+					(data?.devices[0]?.product_name || fileName);
 				metricsData.set([...$metricsData, { name: rideName, data: data.records }]);
 				metricsDataShift.set($metricsData.map(() => 0));
 			}
 		);
+	};
+
+	const parseZipFile = async (zipFileBlob) => {
+		const zip = new ZipReader(new BlobReader(zipFileBlob));
+		const entries = await zip.getEntries();
+		for(const file of entries) {
+			if (file?.filename?.endsWith('.fit') && !file?.filename?.startsWith('__MACOSX/') && !file?.directory) {
+				const binaryFile = await file.getData(new BlobWriter());
+				binaryFile.name = file.filename;
+				parseFitFile(binaryFile);
+			}
+		}
 	};
 
 	const clear = () => {
@@ -129,7 +151,7 @@
 		id={fileInputName}
 		multiple
 		on:change={handleFileUpload}
-		accept=".fit"
+		accept=".fit;.zip"
 		class="inline-block w-1/4 xs:w-5/12"
 	/>
 	{#if $metricsData.length > 1}

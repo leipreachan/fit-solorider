@@ -34,6 +34,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@zip.js/zip.js": "^2.7.34",
 		"dotenv": "^16.3.1",
 		"fit-file-parser": "^1.9.5",
 		"flowbite": "^2.2.1",
