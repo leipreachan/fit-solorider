@@ -151,7 +151,7 @@
 		id={fileInputName}
 		multiple
 		on:change={handleFileUpload}
-		accept=".fit;.zip"
+		accept="application/vnd.ant.fit, application/zip"
 		class="inline-block w-1/4 xs:w-5/12"
 	/>
 	{#if $metricsData.length > 1}
