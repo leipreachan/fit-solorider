@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 import { writable } from 'svelte/store';
 
-const initialData = browser ? JSON.parse(window.localStorage?.metricsData || []) ?? [] : [];
-const initialDataShift = browser ? JSON.parse(window.localStorage?.metricsDataShift || []) ?? [] : [];
+const initialData = browser ? JSON.parse(window.localStorage?.metricsData || "[]") ?? [] : [];
+const initialDataShift = browser ? JSON.parse(window.localStorage?.metricsDataShift || "[]") ?? [] : [];
 const initialAlignMethod = browser ? window.localStorage?.alignMethod ?? '' : '';
 
 export const metricsData = writable(initialData || []);
