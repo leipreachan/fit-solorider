@@ -2,8 +2,8 @@
 	import { DarkMode } from 'flowbite-svelte';
 	import { theme } from '../stores/theme';
 
-	let currentTheme = $theme;
 	const toggleTheme = () => {
+		let currentTheme = $theme;
 		theme.set(currentTheme === 'light' ? 'dark' : 'light');
 	};
 </script>
