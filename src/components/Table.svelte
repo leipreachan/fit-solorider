@@ -28,7 +28,7 @@
 			{#each Object.keys(tableData[0]) as columnHeading, i}
 				<TableHeadCell class={i === 0 && showCheckbox ? 'px-0' : 'px-6'}>
 					{$_(columnHeading.toLowerCase())}
-					{i === 0 ? '' : $_(metric)}
+					{i === 0 ? '' : $_(metric).replaceAll('_', ' ')}
 				</TableHeadCell>
 			{/each}
 		</TableHead>

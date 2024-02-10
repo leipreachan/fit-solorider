@@ -117,11 +117,21 @@
 		['temperature', { units: $_('degrees'), shortUnits: '°' }]
 	]);
 
-	const excludeMetrics = new Set(['timestamp', 'elapsed_time', 'timer_time', 'distance', 'position_long', 'position_lat']);
+	const excludeMetrics = new Set([
+		'timestamp',
+		'elapsed_time',
+		'timer_time',
+		'distance',
+		'position_long',
+		'position_lat',
+		'activity_type',
+		'resistance',
+		'fractional_cadence',
+	]);
 
 	const initChart = (metricName: string, series: any | null = null) => {
 		if (!charts.has(metricName)) {
-			options.title.text = $_(metricName);
+			options.title.text = $_(metricName).replaceAll('_', ' ');
 			options.yAxis.title.text = priority.get(metricName)?.units || '';
 			options.chart.type = priority.get(metricName)?.type || 'line';
 			if (series !== null) {
@@ -330,14 +340,18 @@
 		);
 		const filteredPriorityLst = Array.from(priority.keys()).filter((k) => dataMetricSet.has(k));
 
-		metricNames = new Set([...Array.from(metricNames), ...filteredPriorityLst, ...Array.from(dataMetricSet)]);
+		metricNames = new Set([
+			...Array.from(metricNames),
+			...filteredPriorityLst,
+			...Array.from(dataMetricSet)
+		]);
 	}
 
 	beforeUpdate(() => {
 		if ($metricsData.length > 0) {
 			getMetricNames($metricsData);
 		}
-	})
+	});
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if ($metricsData.length > 0) {
@@ -473,7 +487,7 @@
 					<Table
 						tableData={tableData[metric]}
 						selectedRowHandler={metric === 'power' ? selectedRowHandler : null}
-						metric={metric}
+						{metric}
 					/>
 				{/if}
 			</div>
