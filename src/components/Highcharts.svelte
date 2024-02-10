@@ -1,6 +1,6 @@
 <!-- src/components/Highcharts.svelte -->
 <script lang="ts">
-	import { onMount, afterUpdate } from 'svelte';
+	import { onMount, afterUpdate, beforeUpdate } from 'svelte';
 	import Highcharts from 'highcharts';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
@@ -117,6 +117,8 @@
 		['temperature', { units: $_('degrees'), shortUnits: '°' }]
 	]);
 
+	const excludeMetrics = new Set(['timestamp', 'elapsed_time', 'timer_time', 'distance', 'position_long', 'position_lat']);
+
 	const initChart = (metricName: string, series: any | null = null) => {
 		if (!charts.has(metricName)) {
 			options.title.text = $_(metricName);
@@ -126,8 +128,12 @@
 				options.series = series;
 			}
 			//@ts-ignore
-			const chart = Highcharts.chart(`${containerName}${metricName}`, options);
-			charts.set(metricName, chart);
+			try {
+				const chart = Highcharts.chart(containerName + metricName, options, () => {});
+				charts.set(metricName, chart);
+			} catch (e) {
+				console.error(`Error while initialising chart '${containerName + metricName}'`, e, options);
+			}
 		}
 		return charts.get(metricName);
 	};
@@ -317,22 +323,33 @@
 	}
 
 	async function getMetricNames(data: any[]) {
-		metricNames = new Set(data.flatMap((fit) => fit.data.flatMap((x: {}) => Object.keys(x))));
+		const dataMetricSet = new Set(
+			data
+				.flatMap((fit) => fit.data.flatMap((x: {}) => Object.keys(x)))
+				.filter((k) => !excludeMetrics.has(k))
+		);
+		const filteredPriorityLst = Array.from(priority.keys()).filter((k) => dataMetricSet.has(k));
+
+		metricNames = new Set([...Array.from(metricNames), ...filteredPriorityLst, ...Array.from(dataMetricSet)]);
 	}
 
+	beforeUpdate(() => {
+		if ($metricsData.length > 0) {
+			getMetricNames($metricsData);
+		}
+	})
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if ($metricsData.length > 0) {
-			const fields = [...priority.keys()];
-			for (let i = 0; i < fields.length; i++) {
+			for (const field of metricNames) {
 				const values = $metricsData.map((fit) => ({
 					name: fit.name,
 					data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
 						Date.parse(x.timestamp),
-						x[fields[i]] || null
+						x[field] || null
 					])
 				}));
-				newSeries.set(fields[i], values);
+				newSeries.set(field, values);
 			}
 
 			for (const [field, value] of newSeries) {
@@ -341,7 +358,6 @@
 				drawTables(field, value);
 			}
 
-			getMetricNames($metricsData);
 			renderCharts();
 		} else {
 			destroyCharts();
@@ -450,20 +466,18 @@
 
 <div id="container_wrapper">
 	{#if $metricsData.length > 0}
-		{#each priority.keys() as key}
+		{#each metricNames as metric}
 			<div class="chart_wrapper">
-				<div id={containerName + key} class="chart_container"></div>
-				{#if tableData[key]?.length > 0}
+				<div id={containerName + metric} class="chart_container"></div>
+				{#if tableData[metric]?.length > 0}
 					<Table
-						tableData={tableData[key]}
-						selectedRowHandler={key === 'power' ? selectedRowHandler : null}
-						metric={key}
+						tableData={tableData[metric]}
+						selectedRowHandler={metric === 'power' ? selectedRowHandler : null}
+						metric={metric}
 					/>
-				{:else}
-					<center>No {key} data found in one of the uploaded files</center>
 				{/if}
 			</div>
-			{#if key === 'power' && tableData[key]?.length > 1}
+			{#if metric === 'power' && tableData[metric]?.length > 1}
 				<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
 			{/if}
 		{/each}

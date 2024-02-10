@@ -24,7 +24,6 @@
 		const input = e.target;
 		const files = Array.from(input?.files || []);
 		for (const file of files) {
-			console.log(file);
 			if (file.type === 'application/vnd.ant.fit') {
 				parseFitFile(file);
 			}
