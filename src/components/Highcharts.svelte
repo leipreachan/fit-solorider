@@ -315,7 +315,7 @@
 				chart.addSeries({ name, data }, false);
 			}
 		});
-		chart.redraw();
+		// chart.redraw();
 		return chart;
 	}
 
@@ -352,6 +352,7 @@
 			getMetricNames($metricsData);
 		}
 	});
+
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if ($metricsData.length > 0) {
@@ -421,11 +422,15 @@
 		disabled = selectedRows.size === 0;
 	};
 
-	function renderCharts() {
-		charts.forEach((chart) => {
-			const updatedOptions = getUpdatedOptions(chart.options);
-			chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
-		});
+	const renderSingleChart = async (chart) => {
+		const updatedOptions = getUpdatedOptions(chart.options);
+		chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
+	}
+
+	const renderCharts = async () => {
+		for(const chart of charts.values() ) {
+			renderSingleChart(chart);
+		}
 	}
 
 	function destroyCharts() {

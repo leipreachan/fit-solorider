@@ -4,13 +4,12 @@
 	import FitParser from 'fit-file-parser';
 	import { metricsData, metricsDataShift, alignMethod } from '../stores/data';
 	import { _ } from 'svelte-i18n';
-	import {
-		BlobReader,
-		BlobWriter,
-		ZipReader,
-	} from '@zip.js/zip.js';
+	import { BlobReader, BlobWriter, ZipReader } from '@zip.js/zip.js';
 
 	export let description = '';
+
+	let temporaryMetricsData: any[] = [];
+	let fileReadCounter = 0;
 
 	const fileInputName = 'fileInput';
 	const fitFileConfig = {
@@ -23,53 +22,68 @@
 	const handleFileUpload = (e: any) => {
 		const input = e.target;
 		const files = Array.from(input?.files || []);
+		temporaryMetricsData = [];
+		fileReadCounter = 0;
 		for (const file of files) {
 			if (file.type === 'application/vnd.ant.fit') {
-				parseFitFile(file);
+				parseFitFile(file, files.length);
 			}
 			if (file.type === 'application/zip') {
-				parseZipFile(file);
+				parseZipFile(file, files.length);
 			}
 		}
 		alignActivities();
 	};
 
-	const parseFitFile = async (file) => {
-		const fileName = file.name;
-		fitParser.parse(
-			await file.arrayBuffer(),
-			(
-				error: any,
-				data: {
-					devices: {
-						manufacturer: string;
-						product_name: any;
-					}[];
-					records: any;
-				}
-			) => {
-				if (error) {
-					console.error($_('error_parsing_fit') + " " + fileName, error);
-					return;
-				}
-				const rideName =
-					(data?.devices[0]?.manufacturer || '') +
-					' ' +
-					(data?.devices[0]?.product_name || fileName);
-				metricsData.set([...$metricsData, { name: rideName, data: data.records }]);
-				metricsDataShift.set($metricsData.map(() => 0));
-			}
-		);
+	const updateMetricsData = (newData: any[]) => {
+		console.log('update');
+		metricsData.set([...$metricsData, ...newData]);
+		metricsDataShift.set($metricsData.map(() => 0));
 	};
 
-	const parseZipFile = async (zipFileBlob) => {
+	const onParsingComplete =
+		(fileName: string, globalUpdateAt: number) =>
+		(
+			error: any,
+			data: {
+				devices: {
+					manufacturer: string;
+					product_name: any;
+				}[];
+				records: any;
+			}
+		) => {
+			fileReadCounter++;
+			if (error) {
+				console.error($_('error_parsing_fit') + ' ' + fileName, error);
+				return;
+			}
+			const rideName =
+				(data?.devices[0]?.manufacturer || '') + ' ' + (data?.devices[0]?.product_name || fileName);
+			temporaryMetricsData = [...temporaryMetricsData, { name: rideName, data: data.records }];
+			if (fileReadCounter >= globalUpdateAt) {
+				updateMetricsData(temporaryMetricsData);
+				temporaryMetricsData = [];
+			}
+		};
+
+	const parseFitFile = async (file, updateStateWhen) => {
+		const fileName = file.name;
+		fitParser.parse(await file.arrayBuffer(), onParsingComplete(fileName, updateStateWhen));
+	};
+
+	const parseZipFile = async (zipFileBlob, globalUpdateAt) => {
 		const zip = new ZipReader(new BlobReader(zipFileBlob));
 		const entries = await zip.getEntries();
-		for(const file of entries) {
-			if (file?.filename?.endsWith('.fit') && !file?.filename?.startsWith('__MACOSX/') && !file?.directory) {
+		for (const file of entries) {
+			if (
+				file?.filename?.endsWith('.fit') &&
+				!file?.filename?.startsWith('__MACOSX/') &&
+				!file?.directory
+			) {
 				const binaryFile = await file.getData(new BlobWriter());
 				binaryFile.name = file.filename;
-				parseFitFile(binaryFile);
+				parseFitFile(binaryFile, globalUpdateAt);
 			}
 		}
 	};
