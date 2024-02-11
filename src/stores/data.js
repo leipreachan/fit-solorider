@@ -11,7 +11,11 @@ export const alignMethod = writable(initialAlignMethod || '');
 
 metricsData.subscribe((value) => {
     if (browser) {
-        window.localStorage.metricsData = JSON.stringify(value);
+        try {
+            window.localStorage.metricsData = JSON.stringify(value);
+        } catch (e) {
+            console.error("It looks like we were unable to save the session to local storage:", e);
+        }
     }
 });
 

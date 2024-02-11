@@ -353,6 +353,7 @@
 	function getSeriesData() {	
 		const result = new Map();
 
+		console.log($metricsData);
 		for (let file of $metricsData) {
 			const {name, data} = file;
 			const metricToFileToData = {};
@@ -375,7 +376,7 @@
 				result.set(key, curr);
 			}
 		}
-		// console.log(result);
+		console.log(result);
 
 		return result;
 	}
