@@ -398,7 +398,7 @@
 	});
 
 	function shiftAllSeries(selectedOnly: boolean) {
-		for (let k of priority.keys()) {
+		for (let k of metricNames) {
 			shiftSeriesOfSingleChart(k, selectedOnly);
 		}
 	}
