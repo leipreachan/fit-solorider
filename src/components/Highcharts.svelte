@@ -7,7 +7,6 @@
 	import { _ } from 'svelte-i18n';
 	import { theme } from '../stores/theme';
 	import { metricsData, metricsDataShift } from '../stores/data';
-	import { Result } from 'postcss';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
@@ -127,8 +126,11 @@
 		'position_lat',
 		'activity_type',
 		'resistance',
-		'fractional_cadence'
+		'fractional_cadence',
+		'accumulated_power',
 	]);
+
+	const filterNulls = new Set(['battery_soc']);
 
 	const initChart = (metricName: string, series: any | null = null) => {
 		if (!charts.has(metricName)) {
@@ -360,7 +362,10 @@
 					if (metricToFileToData[key] === undefined) {
 						metricToFileToData[key] = [];
 					}
-					metricToFileToData[key].push([ts, point[key] || null]);
+					const value = (typeof point[key] === "object") ? point[key].value || null : point[key] || null;
+					if (!(value === null && filterNulls.has(key))) {
+						metricToFileToData[key].push([ts, value]);
+					}
 				}
 			}
 			
@@ -370,6 +375,7 @@
 				result.set(key, curr);
 			}
 		}
+		// console.log(result);
 
 		return result;
 	}
