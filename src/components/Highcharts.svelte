@@ -7,16 +7,17 @@
 	import { _ } from 'svelte-i18n';
 	import { theme } from '../stores/theme';
 	import { metricsData, metricsDataShift } from '../stores/data';
+	import { Result } from 'postcss';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
 
 	let disabled = true;
 
-	const newSeries = new Map();
+	let newSeries = new Map();
 	const minRange = -65;
 	const maxRange = 65;
-	let metricNames = new Set();
+	let metricNames: Set<string> = new Set();
 
 	let syncShift = 0;
 	let tableData: any = [];
@@ -126,7 +127,7 @@
 		'position_lat',
 		'activity_type',
 		'resistance',
-		'fractional_cadence',
+		'fractional_cadence'
 	]);
 
 	const initChart = (metricName: string, series: any | null = null) => {
@@ -347,6 +348,38 @@
 		]);
 	}
 
+	function getSeriesData() {	
+		const metricToFileToData = {};
+
+		for (let key of metricNames) {
+			metricToFileToData[key] = {};
+		}
+
+		for (let file of $metricsData) {
+			const {name, data} = file;
+			for (let point of data) {
+				const ts = Date.parse(point.timestamp);
+				for (let key of metricNames) {
+					if (metricToFileToData[key][name] === undefined) {
+						metricToFileToData[key][name] = [];
+					}
+					metricToFileToData[key][name].push([ts, point[key] || null]);
+				}
+			}
+		}
+		
+		const result = new Map();
+		for (let key in metricToFileToData) {
+			const tempMetrics = [];
+			for (let name in metricToFileToData[key]) {
+				tempMetrics.push({name, data: metricToFileToData[key][name]})
+			}
+			result.set(key, tempMetrics);
+		}
+		return result;
+	}
+
+
 	beforeUpdate(() => {
 		if ($metricsData.length > 0) {
 			getMetricNames($metricsData);
@@ -356,17 +389,7 @@
 	afterUpdate(() => {
 		// Update chart series when data changes
 		if ($metricsData.length > 0) {
-			for (const field of metricNames) {
-				const values = $metricsData.map((fit) => ({
-					name: fit.name,
-					data: fit.data.map((x: { [x: string]: any; timestamp: string }) => [
-						Date.parse(x.timestamp),
-						x[field] || null
-					])
-				}));
-				newSeries.set(field, values);
-			}
-
+			newSeries = getSeriesData();
 			for (const [field, value] of newSeries) {
 				const shiftedValue = calculateShiftedSeries(value, false);
 				drawChart(field, shiftedValue);
@@ -425,13 +448,13 @@
 	const renderSingleChart = async (chart) => {
 		const updatedOptions = getUpdatedOptions(chart.options);
 		chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
-	}
+	};
 
 	const renderCharts = async () => {
-		for(const chart of charts.values() ) {
+		for (const chart of charts.values()) {
 			renderSingleChart(chart);
 		}
-	}
+	};
 
 	function destroyCharts() {
 		charts.clear();
