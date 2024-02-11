@@ -36,7 +36,7 @@
 	};
 
 	const updateMetricsData = (newData: any[]) => {
-		console.log('update');
+		// console.log('update');
 		metricsData.set([...$metricsData, ...newData]);
 		metricsDataShift.set($metricsData.map(() => 0));
 	};

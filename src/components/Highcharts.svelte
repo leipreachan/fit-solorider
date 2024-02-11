@@ -349,33 +349,28 @@
 	}
 
 	function getSeriesData() {	
-		const metricToFileToData = {};
-
-		for (let key of metricNames) {
-			metricToFileToData[key] = {};
-		}
+		const result = new Map();
 
 		for (let file of $metricsData) {
 			const {name, data} = file;
+			const metricToFileToData = {};
 			for (let point of data) {
 				const ts = Date.parse(point.timestamp);
 				for (let key of metricNames) {
-					if (metricToFileToData[key][name] === undefined) {
-						metricToFileToData[key][name] = [];
+					if (metricToFileToData[key] === undefined) {
+						metricToFileToData[key] = [];
 					}
-					metricToFileToData[key][name].push([ts, point[key] || null]);
+					metricToFileToData[key].push([ts, point[key] || null]);
 				}
 			}
-		}
-		
-		const result = new Map();
-		for (let key in metricToFileToData) {
-			const tempMetrics = [];
-			for (let name in metricToFileToData[key]) {
-				tempMetrics.push({name, data: metricToFileToData[key][name]})
+			
+			for (let key of metricNames) {
+				const curr = result.get(key) || [];
+				curr.push({name, data: metricToFileToData[key]});
+				result.set(key, curr);
 			}
-			result.set(key, tempMetrics);
 		}
+
 		return result;
 	}
 
