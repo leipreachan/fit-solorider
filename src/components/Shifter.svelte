@@ -8,8 +8,8 @@
 	const minRange = -65;
 	const maxRange =  65;
 
-	let seconds = 0;
-	let minutes = 0;
+	let seconds: any = 0;
+	let minutes: any = 0;
 
 	function handleChange() {
 		value = (parseInt(seconds) + parseInt(minutes) * 60) * 1000;

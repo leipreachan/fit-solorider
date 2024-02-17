@@ -123,6 +123,7 @@
 			getMetricNames($metricsData);
 			seriesData = getSeriesData();
 		}
+		console.log(syncShift);
 	});
 
 	function shiftAllSeries(selectedOnly: boolean) {

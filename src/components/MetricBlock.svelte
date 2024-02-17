@@ -148,7 +148,6 @@
 	};
 
 	const updateSingleSeries = async (chart: any, name: string, data: any) => {
-		console.log(`start updating ${metric} ${name}`);
 		if (chartSeries.has(name)) {
 			const index = chartSeries.get(name);
 			chart.series[index].update({ data }, false);
@@ -156,7 +155,6 @@
 			chartSeries.set(name, chart.series.length);
 			chart.addSeries({ name, data }, false);
 		}
-		console.log(`end updating ${name}`);
 	};
 
 	const updateChartSeries = async (chart: any, value: { name: any; data: any }[]) => {
@@ -344,7 +342,6 @@
 	})
 
 	afterUpdate(() => {
-		console.log(`after update ${metric}`)
 		if (seriesData) {
 			updateChartSeries(currentChart, seriesData);
 			updateTableData(metric, seriesData);
@@ -364,7 +361,7 @@
 			/>
 		{/if}
 	</div>
-	<!-- {#if metric === 'power' && tableData?.length > 1}
-		<Shifter bind:value {disabled} />
-	{/if} -->
+	{#if metric === 'power' && tableData?.length > 1}
+		<Shifter bind:value={syncShift} {disabled} />
+	{/if}
 </span>
