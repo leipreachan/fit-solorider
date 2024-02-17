@@ -1,7 +1,7 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
 	import MyMeta from '../components/MyMeta.svelte';
-	import Highcharts from '../components/Highcharts.svelte';
+	import PlotTable from '../components/PlotTable.svelte';
 	import Tracker from '../components/Tracker.svelte';
 	import SupportMe from '../components/SupportMe.svelte';
 	import Topbar from '../components/Topbar.svelte';
@@ -18,6 +18,6 @@
 <main class="w-screen">
 	<Topbar description={$_('description')} />
 	<DarkMode />
-	<Highcharts />
+	<PlotTable />
 	<SupportMe />
 </main>

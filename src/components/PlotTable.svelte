@@ -2,16 +2,14 @@
 <script lang="ts">
 	import { onMount, afterUpdate, beforeUpdate } from 'svelte';
 	import * as Highcharts from 'highcharts';
-	import Shifter from './Shifter.svelte';
-	import Table from './Table.svelte';
 	import { _ } from 'svelte-i18n';
 	import { theme } from '../stores/theme';
 	import { metricsData, metricsDataShift } from '../stores/data';
+	import Shifter from './Shifter.svelte';
+	import MetricBlock from './MetricBlock.svelte';
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
-	const minRange = -65;
-	const maxRange = 65;
 	const selectedRows = new Set();
 
 	let disabled = true;
@@ -387,7 +385,6 @@
 		return result;
 	}
 
-
 	beforeUpdate(() => {
 		if ($metricsData.length > 0) {
 			getMetricNames($metricsData);
@@ -520,18 +517,18 @@
 <div id="container_wrapper">
 	{#if $metricsData.length > 0}
 		{#each metricNames as metric}
-			<div class="chart_wrapper">
-				<div id={containerName + metric} class="chart_container"></div>
-				{#if tableData[metric]?.length > 0}
-					<Table
-						tableData={tableData[metric]}
-						selectedRowHandler={metric === 'power' ? selectedRowHandler : null}
-						{metric}
-					/>
-				{/if}
-			</div>
-			{#if metric === 'power' && tableData[metric]?.length > 1}
-				<Shifter {...{ minRange, maxRange, handleShiftChange, disabled }} />
+			<MetricBlock
+				{...{
+					containerName,
+					metric,
+					selectedRowHandler,
+					handleShiftChange,
+					disabled,
+					tableData: tableData[metric]
+				}}
+			/>
+			{#if metric === 'power' && tableData?.length > 1}
+				<Shifter {...{ handleShiftChange, disabled }} />
 			{/if}
 		{/each}
 	{/if}
