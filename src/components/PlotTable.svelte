@@ -3,6 +3,7 @@
 	import { onMount, afterUpdate, beforeUpdate } from 'svelte';
 	import * as Highcharts from 'highcharts';
 	import { _ } from 'svelte-i18n';
+	import { timeStart, timeEnd } from '$lib/helpers/helper';
 	import { theme } from '../stores/theme';
 	import { metricsData, metricsDataShift } from '../stores/data';
 	import Shifter from './Shifter.svelte';
@@ -358,7 +359,7 @@
 	function getSeriesData() {
 		const result = new Map();
 
-		// console.log($metricsData);
+		console.log($metricsData);
 		for (let file of $metricsData) {
 			const { name, data } = file;
 			const metricToFileToData: { [key: string]: any[] } = {};
@@ -459,9 +460,15 @@
 	};
 
 	const renderCharts = async () => {
+		timeStart('render all charts');
+		let i = 0;
 		for (const chart of charts.values()) {
+			timeStart(`render chart ${i}`);
 			renderSingleChart(chart);
+			timeEnd(`render chart ${i}`);
+			i++;
 		}
+		timeEnd('render all charts');
 	};
 
 	function destroyCharts() {
@@ -533,9 +540,3 @@
 		{/each}
 	{/if}
 </div>
-
-<style lang="postcss">
-	.chart_wrapper {
-		@apply mt-10;
-	}
-</style>
