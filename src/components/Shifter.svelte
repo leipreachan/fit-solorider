@@ -2,17 +2,17 @@
 	import { Input, Range } from 'flowbite-svelte';
 	import { _ } from 'svelte-i18n';
 
-	export let minRange: number;
-	export let maxRange: number;
-	export let handleShiftChange: any;
 	export let disabled: boolean;
+	export let value: number;
+
+	const minRange = -65;
+	const maxRange =  65;
 
 	let seconds = 0;
 	let minutes = 0;
 
 	function handleChange() {
-		const shift = (parseInt(seconds) + parseInt(minutes) * 60) * 1000;
-		handleShiftChange(shift);
+		value = (parseInt(seconds) + parseInt(minutes) * 60) * 1000;
 	}
 
 	const rangeTicks = [
