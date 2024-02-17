@@ -1,7 +1,7 @@
 <!-- src/components/Highcharts.svelte -->
 <script lang="ts">
 	import { onMount, afterUpdate, beforeUpdate } from 'svelte';
-	import Highcharts from 'highcharts';
+	import * as Highcharts from 'highcharts';
 	import Shifter from './Shifter.svelte';
 	import Table from './Table.svelte';
 	import { _ } from 'svelte-i18n';
@@ -10,38 +10,61 @@
 
 	const sourceNameParam = 'Source';
 	const containerName = 'chartContainer_';
-
-	let disabled = true;
-
-	let newSeries = new Map();
 	const minRange = -65;
 	const maxRange = 65;
+	const selectedRows = new Set();
+
+	let disabled = true;
+	let newSeries = new Map();
 	let metricNames: Set<string> = new Set();
 
 	let syncShift = 0;
 	let tableData: any = [];
-	const selectedRows = new Set();
 
-	function logExtremes(event: Event) {
-		const field = event.target.chart.container.parentNode.id.replace(containerName, '');
+	function logExtremes(event: { target: { chart: any }; userMin: number; userMax: number }) {
+		const chart = event?.target.chart;
+		const field = chart.container.parentNode.id.replace(containerName, '');
 		let newData = [];
 		if (event.userMin && event.userMax) {
-			newData = event.target.chart.series.map((s, k) => ({
-				name: event.target.chart.series[k].name,
+			newData = chart.series.map((s: { data: any[] }, k: string | number) => ({
+				name: chart.series[k].name,
 				data: s.data
 					.filter((v) => v.x >= event.userMin && v.x <= event.userMax)
 					.map(({ x, y }) => [x, y])
 			}));
 		} else {
-			newData = event.target.chart.series.map((s, k) => ({
-				name: event.target.chart.series[k].name,
+			newData = chart.series.map((s: { data: { x: any; y: any }[] }, k: string | number) => ({
+				name: chart.series[k].name,
 				data: s.data.map(({ x, y }) => [x, y])
 			}));
 		}
 		drawTables(field, newData, true);
 	}
 
-	const options = {
+	function optionsFormatter() {
+		return (
+			'<b>' +
+			Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +
+			'</b><br/>' +
+			this.points.reduce(
+				(str: string, point: { series: { color: string; name: string }; y: number }) => {
+					return (
+						str +
+						'<span style="color:' +
+						point.series.color +
+						'">\u25CF</span> ' +
+						point.series.name +
+						': <b>' +
+						Math.round(point.y) +
+						'</b><br/>'
+					);
+				},
+				''
+			)
+		);
+	}
+
+	const options: any = {
 		title: {
 			text: ''
 		},
@@ -62,25 +85,7 @@
 			type: 'line'
 		},
 		tooltip: {
-			formatter: function () {
-				return (
-					'<b>' +
-					Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) +
-					'</b><br/>' +
-					this.points.reduce((str, point) => {
-						return (
-							str +
-							'<span style="color:' +
-							point.series.color +
-							'">\u25CF</span> ' +
-							point.series.name +
-							': <b>' +
-							Math.round(point.y) +
-							'</b><br/>'
-						);
-					}, '')
-				);
-			},
+			formatter: optionsFormatter,
 			shared: true // Enable shared tooltip
 		},
 		plotOptions: {
@@ -127,7 +132,7 @@
 		'activity_type',
 		'resistance',
 		'fractional_cadence',
-		'accumulated_power',
+		'accumulated_power'
 	]);
 
 	const filterNulls = new Set(['battery_soc']);
@@ -324,7 +329,9 @@
 
 	async function drawTables(field: string, value: any[], fullRedraw = false) {
 		let newData = fullRedraw ? [] : tableData[field] || [];
-		const sources = new Set(newData.length > 0 ? newData.map((x) => x.Source.value) : []);
+		const sources = new Set(
+			newData.length > 0 ? newData.map((x: { Source: { value: any } }) => x.Source.value) : []
+		);
 		tableData[field] = value
 			.filter((x) => !sources.has(x.name))
 			.reduce((accum, { name, data }) => {
@@ -350,29 +357,30 @@
 		]);
 	}
 
-	function getSeriesData() {	
+	function getSeriesData() {
 		const result = new Map();
 
 		// console.log($metricsData);
 		for (let file of $metricsData) {
-			const {name, data} = file;
-			const metricToFileToData = {};
+			const { name, data } = file;
+			const metricToFileToData: { [key: string]: any[] } = {};
 			for (let point of data) {
 				const ts = Date.parse(point.timestamp);
 				for (let key of metricNames) {
 					if (metricToFileToData[key] === undefined) {
 						metricToFileToData[key] = [];
 					}
-					const value = (typeof point[key] === "object") ? point[key].value || null : point[key] || null;
+					const value =
+						typeof point[key] === 'object' ? point[key].value || null : point[key] || null;
 					if (!(value === null && filterNulls.has(key))) {
 						metricToFileToData[key].push([ts, value]);
 					}
 				}
 			}
-			
+
 			for (let key of metricNames) {
 				const curr = result.get(key) || [];
-				curr.push({name, data: metricToFileToData[key]});
+				curr.push({ name, data: metricToFileToData[key] });
 				result.set(key, curr);
 			}
 		}
@@ -410,7 +418,7 @@
 
 	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
 		let id = 0;
-		const result = value.map(({ name, data }) => {
+		const result = value.map(({ name, data }: { name: string; data: any[] }) => {
 			let shift = $metricsDataShift[id];
 			if (selectedOnly) {
 				shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
@@ -445,7 +453,10 @@
 		disabled = selectedRows.size === 0;
 	};
 
-	const renderSingleChart = async (chart) => {
+	const renderSingleChart = async (chart: {
+		options: any;
+		update: (arg0: any, arg1: boolean) => void;
+	}) => {
 		const updatedOptions = getUpdatedOptions(chart.options);
 		chart.update(updatedOptions, true); // The second parameter 'true' preserves the state
 	};

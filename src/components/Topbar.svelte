@@ -67,21 +67,22 @@
 			}
 		};
 
-	const parseFitFile = async (file, updateStateWhen) => {
+	const parseFitFile = async (file: any, updateStateWhen: number) => {
 		const fileName = file.name;
 		fitParser.parse(await file.arrayBuffer(), onParsingComplete(fileName, updateStateWhen));
 	};
 
-	const parseZipFile = async (zipFileBlob, globalUpdateAt) => {
-		const zip = new ZipReader(new BlobReader(zipFileBlob));
+	const parseZipFile = async (zipFileBlob: unknown, globalUpdateAt: number) => {
+		const zip = new ZipReader(new BlobReader(zipFileBlob as Blob));
 		const entries = await zip.getEntries();
 		for (const file of entries) {
 			if (
 				file?.filename?.endsWith('.fit') &&
 				!file?.filename?.startsWith('__MACOSX/') &&
-				!file?.directory
+				!file?.directory &&
+				file.getData
 			) {
-				const binaryFile = await file.getData(new BlobWriter());
+				const binaryFile: any = await file.getData(new BlobWriter());
 				binaryFile.name = file.filename;
 				parseFitFile(binaryFile, globalUpdateAt);
 			}
@@ -140,7 +141,7 @@
 		return temp;
 	};
 
-	const optionFunctions = { alignNone, alignByStart, alignByEnd, alignOneAfterAnother };
+	const optionFunctions: any = { alignNone, alignByStart, alignByEnd, alignOneAfterAnother };
 
 	const alignActivitiesHandler = () => {
 		if ($metricsData.length > 1) {
