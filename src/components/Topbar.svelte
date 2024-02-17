@@ -2,7 +2,7 @@
 	import { Button, Fileupload, Select } from 'flowbite-svelte';
 	import Header from '../components/Header.svelte';
 	import FitParser from 'fit-file-parser';
-	import { metricsData, metricsDataShift, alignMethod } from '../stores/data';
+	import { metricsData, metricsDataShift, alignMethod } from '$lib/stores/data';
 	import { _ } from 'svelte-i18n';
 	import { BlobReader, BlobWriter, ZipReader } from '@zip.js/zip.js';
 

@@ -1,6 +1,6 @@
 <script>
 	import { DarkMode } from 'flowbite-svelte';
-	import { theme } from '../stores/theme';
+	import { theme } from '$lib/stores/theme';
 
 	const toggleTheme = () => {
 		let currentTheme = $theme;

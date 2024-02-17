@@ -4,8 +4,8 @@
 	import * as Highcharts from 'highcharts';
 	import { _ } from 'svelte-i18n';
 	import { timeStart, timeEnd } from '$lib/helpers/helper';
-	import { theme } from '../stores/theme';
-	import { metricsData, metricsDataShift } from '../stores/data';
+	import { theme } from '$lib/stores/theme';
+	import { metricsData, metricsDataShift } from '$lib/stores/data';
 	import Shifter from './Shifter.svelte';
 	import MetricBlock from './MetricBlock.svelte';
 
