@@ -61,7 +61,7 @@
 	</Table>
 </div>
 
-<style>
+<style lang="postcss">
 	.table-wrapper {
 		@apply flex justify-center;
 	}

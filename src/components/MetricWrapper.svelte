@@ -361,7 +361,7 @@
 			/>
 		{/if}
 	</div>
-	{#if metric === 'power' && tableData?.length > 1}
+	{#if metric === 'power' && chartSeries.get('power')?.length > 1}
 		<Shifter bind:value={syncShift} {disabled} />
 	{/if}
 </span>
