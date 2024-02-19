@@ -123,7 +123,7 @@
 			getMetricNames($metricsData);
 			seriesData = getSeriesData();
 		}
-		console.log(syncShift);
+		console.log($metricsDataShift);
 	});
 
 	function shiftAllSeries(selectedOnly: boolean) {
@@ -135,12 +135,12 @@
 	function calculateShiftedSeries(value: any, selectedOnly: boolean) {
 		// let id = 0;
 		// const result = value.map(({ name, data }: { name: string; data: any[] }) => {
-		// 	let shift = $metricsDataShift[id];
-		// 	if (selectedOnly) {
-		// 		shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
-		// 	}
-		// 	id++;
-		// 	return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
+			// let shift = $metricsDataShift[id];
+			// if (selectedOnly) {
+				// shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
+			// }
+			// id++;
+			// return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
 		// });
 		// return result;
 	}

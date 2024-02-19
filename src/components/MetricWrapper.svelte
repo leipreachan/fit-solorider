@@ -2,8 +2,9 @@
 	import Shifter from './Shifter.svelte';
 	import { _ } from 'svelte-i18n';
 	import * as Highcharts from 'highcharts';
-	import { afterUpdate, onMount } from 'svelte';
+	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
 	import TableWrapper from './TableWrapper.svelte';
+	import { metricsDataShift } from '$lib/stores/data';
 
 	export let containerName: string;
 	export let metric: string;
@@ -153,12 +154,25 @@
 		chart.redraw();
 	};
 
+	function calculateShiftedSeries(data: any) {
+		let id = 0;
+		return data.map(({ name, data }: { name: string; data: any[] }) => {
+			let shift = $metricsDataShift[id];
+			// if (selectedOnly) {
+			// shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
+			// }
+			id++;
+			return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
+		});
+	}
+
 	onMount(() => {
 		currentChart = initChart(metric, getDefaultOptions(metric));
 	});
 
 	afterUpdate(() => {
 		if (seriesData) {
+			seriesData = calculateShiftedSeries(seriesData);
 			updateChartSeries(currentChart, seriesData);
 		}
 		syncShift = 0;
