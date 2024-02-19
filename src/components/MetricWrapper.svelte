@@ -154,16 +154,20 @@
 		chart.redraw();
 	};
 
-	function calculateShiftedSeries(data: any) {
+	const calculateShiftedSeries = async (data: any, callback: any) => {
 		let id = 0;
-		return data.map(({ name, data }: { name: string; data: any[] }) => {
+		callback(data.map(({ name, data }: { name: string; data: any[] }) => {
 			let shift = $metricsDataShift[id];
 			// if (selectedOnly) {
 			// shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
 			// }
 			id++;
 			return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
-		});
+		}));
+	}
+
+	const updateSeriesData = (newData: any) => {
+		seriesData = newData;
 	}
 
 	onMount(() => {
@@ -172,7 +176,7 @@
 
 	afterUpdate(() => {
 		if (seriesData) {
-			seriesData = calculateShiftedSeries(seriesData);
+			calculateShiftedSeries(seriesData, updateSeriesData);
 			updateChartSeries(currentChart, seriesData);
 		}
 		syncShift = 0;
@@ -182,7 +186,7 @@
 <span>
 	<div class="chart_wrapper">
 		<div id={containerName + metric} class="chart_container"></div>
-		<TableWrapper {...{ metric, seriesData }} bind:selectedRows />
+		<TableWrapper {...{ metric, seriesData }} bind:selectedRows />		
 	</div>
 	{#if metric === 'power' && chartSeries.get('power')?.length > 1}
 		<Shifter bind:value={syncShift} {disabled} />
