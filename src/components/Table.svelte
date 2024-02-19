@@ -15,6 +15,9 @@
 	export let tableData: any[] = [];
 	export let selectedRowHandler: any = null;
 	export let metric: string = '';
+	// export let metricOptions;
+	// export let selectedRows = new Set();
+
 	$: showLabel = typeof selectedRowHandler === 'function';
 	$: showCheckbox = showLabel && tableData.length > 1;
 </script>

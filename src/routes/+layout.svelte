@@ -1,19 +1,7 @@
-<script>
+<script lang="ts">
 	import '../app.pcss';
-	import { register, init, getLocaleFromNavigator } from 'svelte-i18n';
-
-	const locales = ['ar', 'de', 'en', 'es', 'fr', 'it', 'jp', 'ko', 'pl', 'pt', 'ru', 'ua', 'zh'];
-
-	locales.forEach(locale => {
-		register(locale, () => import(`$lib/i18n/locales/${locale}.json`));
-	});
-
-	const setup = async () => {
-		await init({
-			fallbackLocale: 'en',
-			initialLocale: getLocaleFromNavigator()
-		});
-	};
+	import { setup } from '$lib/helpers/locales';
+	
 	const setupResult = setup();
 </script>
 

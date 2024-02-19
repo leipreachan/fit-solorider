@@ -3,7 +3,7 @@
 	import { onMount, beforeUpdate } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { metricsData, metricsDataShift } from '$lib/stores/data';
-	import MetricBlock from './MetricBlock.svelte';
+	import MetricBlock from './MetricWrapper.svelte';
 
 	const containerName = 'chartContainer_';
 
