@@ -5,7 +5,7 @@
 
 	export let metric: string;
 	export let seriesData: any;
-	export let selectedRows = new Set();
+	export let selectedRows: any = [];
 	let tableData: any;
 
 	const sourceNameParam = 'Source';
@@ -20,11 +20,13 @@
 
 	const selectedRowHandler = (event: Event | null | undefined) => {
 		const target = (event?.target as HTMLSelectElement).value || null;
-		if (selectedRows.has(target)) {
-			selectedRows.delete(target);
+		const asList = new Set(selectedRows);
+		if (asList.has(target)) {
+			asList.delete(target);
 		} else {
-			selectedRows.add(target);
+			asList.add(target);
 		}
+		selectedRows  = Array.from(asList);
 	};
 
 	const isNumber = (n: any) => {
@@ -209,9 +211,8 @@
 <main>
 	{#if tableData?.length > 0}
 		<Table
-			{tableData}
+			{...{tableData, metric}}
 			selectedRowHandler={metric === 'power' ? selectedRowHandler : null}
-			{metric}
 		/>
 	{/if}
 </main>

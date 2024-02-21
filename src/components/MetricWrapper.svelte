@@ -4,12 +4,13 @@
 	import * as Highcharts from 'highcharts';
 	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
 	import TableWrapper from './TableWrapper.svelte';
-	import { metricsDataShift } from '$lib/stores/data';
 
 	export let containerName: string;
 	export let metric: string;
-	export let syncShift: any;
 	export let seriesData: any;
+	export let seriesShift: any;
+	export let selectedRowsShift: any;
+	export let selectedRows: any[];
 
 	const metricOptions = new Map([
 		['power', { units: ' ' + $_('watts') }],
@@ -18,11 +19,8 @@
 		['altitude', { units: $_('meters'), shortUnits: $_('m_meters'), type: 'area' }],
 		['temperature', { units: $_('degrees'), shortUnits: '°' }]
 	]);
-
-	let disabled = true;
-
-	let selectedRows = new Set();
 	const chartSeries = new Map();
+
 	let currentChart: any;
 
 	const logExtremes = (event: { target: { chart: any }; userMin: number; userMax: number }) => {
@@ -42,7 +40,6 @@
 				data: s.data.map(({ x, y }) => [x, y])
 			}));
 		}
-		// drawTables(field, newData, true);
 	};
 
 	function optionsFormatter() {
@@ -157,10 +154,7 @@
 	const calculateShiftedSeries = async (data: any, callback: any) => {
 		let id = 0;
 		callback(data.map(({ name, data }: { name: string; data: any[] }) => {
-			let shift = $metricsDataShift[id];
-			// if (selectedOnly) {
-			// shift = selectedRows.has(name) ? $metricsDataShift[id] + syncShift : $metricsDataShift[id];
-			// }
+			let shift = seriesShift[id];
 			id++;
 			return { name, data: data.map((x) => [x[0] + shift, x[1]]) };
 		}));
@@ -174,12 +168,16 @@
 		currentChart = initChart(metric, getDefaultOptions(metric));
 	});
 
-	afterUpdate(() => {
+	beforeUpdate(() => {
 		if (seriesData) {
 			calculateShiftedSeries(seriesData, updateSeriesData);
+		}
+	})
+
+	afterUpdate(() => {
+		if (seriesData) {
 			updateChartSeries(currentChart, seriesData);
 		}
-		syncShift = 0;
 	});
 </script>
 
@@ -188,7 +186,7 @@
 		<div id={containerName + metric} class="chart_container"></div>
 		<TableWrapper {...{ metric, seriesData }} bind:selectedRows />		
 	</div>
-	{#if metric === 'power' && chartSeries.get('power')?.length > 1}
-		<Shifter bind:value={syncShift} {disabled} />
+	{#if metric === 'power' && selectedRows.length > 0}
+		<Shifter bind:value={selectedRowsShift} disabled={selectedRows.length === 0} />
 	{/if}
 </span>
